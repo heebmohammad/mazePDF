@@ -1,30 +1,142 @@
 import tkinter as tk
-from tkinter import filedialog as fd
-from tkinter.messagebox import showinfo
+from tkinter import Label, filedialog as fd
+from tkinter.messagebox import showerror, showinfo
 from tkinter import CENTER, TclError, ttk
+from FileItem import FileItem, PDFItem
 
 files_queue = []
+
+SUPPORTED_FILE_TYPES = (
+    ("pdf files", "*.pdf"),
+    ("pdf files", "*.PDF"),
+    ("png files", "*.png"),
+    ("All files", "*.*")
+)
+
+def isSupportedFileType(file_type):
+    return (any([("*" + file_type) in tup for tup in SUPPORTED_FILE_TYPES]))
 
 def showProgramInfo():
     showinfo(title="about mazePDF", message="M.HEEB!")
 
-def addFilesToQueue(filenames):
-    for filename in filenames:
-        files_queue.append(filename)
-    print(files_queue)
+def packMultipleFilesControlers():
+    # merge files button
+    try:
+        browse_files_image = tk.PhotoImage(file='./assets/images/0000.png')
+    except TclError as e: 
+        merge_files_button = tk.Button(root, 
+            text="Merge Files",
+            bd=0,
+            bg="#E7E7E7",
+            activebackground="#E7E7E7",
+            fg="black",
+            activeforeground="black",
+            font = ("Times new roman", 24),
+            height=2,
+            width=18,
+            command=mergeFiles)
+    else:
+        #fix???
+        merge_files_button = tk.Button(root, 
+            text=" Browse...",
+            bd=0,
+            bg="#4CAF50",
+            activebackground="#4CAF50",
+            fg="white",
+            activeforeground="white",
+            font = ("Times new roman", 50),
+            height=350,
+            width=500,
+            command=selectFiles,
+            image=browse_files_image)
 
-FILE_TYPES = (
-    ("pdf files", "*.pdf"),
-    ("png files", "*.png"),
-    ("All files", "*.*")
-)
+    # hover effect
+    changeOnHover(merge_files_button, "#F44336", "#E7E7E7", "white", "black")
+    merge_files_button.pack()
+
+#==================================================================================================    
+
+def packFileItemsList():
+    #clear
+    main_browse_button.pack_forget()
+    #pack paths label
+    list = FileItem.getPdfFilesPaths()
+    str = ""
+    for path in list:
+        str += path + "\n"
+
+    Label(text=str, foreground="white", background="black").pack(fill=tk.BOTH, expand=True)
+    #single pdf pack buttons
+    #single png pack buttons
+    #multi pdf pack buttons
+    packMultipleFilesControlers()
+
+def showErrorSelectingFiles(unsupported_files, invalid_paths):
+    if (not(unsupported_files) and not(invalid_paths)):
+        return
+    
+    # sort according to file type
+    unsupported_files.sort(key=lambda x: x[1])
+    unsupported_str = ""
+    for tup in unsupported_files:
+        unsupported_str += "the file: \"" + tup[0] + "\" of type (" + tup[1] + ") not supported yet.\n"
+    
+    invalid_str = ""
+    for path in invalid_paths:
+        invalid_str += "\"" + path + "\" is an invalid file path."
+    
+    error_message = ""
+    show_error = False
+
+    if len(unsupported_files) !=0:
+        show_error = True
+        error_message += "Unsupported File Types: \n" + unsupported_str + "\n"
+    
+    if len(invalid_paths) !=0:
+        show_error = True
+        error_message += "Invalid Paths: \n" + invalid_str + "\n"
+    
+    if show_error:
+        showerror("Error Selecting Files", error_message)
+
+def createFileItem(file_path, file_type):
+    if (file_type == ".pdf"):
+        PDFItem(file_path)
+    else:
+        FileItem(file_path)
+
+def addFilesToQueue(filenames):
+    # list of unsupported files and their types
+    unsupported_files = []
+    # list of invalid paths
+    invalid_paths = []
+
+    for filename in filenames:
+        if (FileItem.is_valid_file_path(filename)):
+            file_type = FileItem.get_file_type(filename)
+            if (isSupportedFileType(file_type)):
+                #add file_path and file_type to files_queue
+                #files_queue.append((filename, file_type))
+                #create file Item
+                createFileItem(filename, file_type)
+            else:
+                unsupported_files.append((filename, file_type))
+        else:
+            invalid_paths.append(filename)
+    showErrorSelectingFiles(unsupported_files, invalid_paths)
 
 def selectFiles():
     filenames = fd.askopenfilenames(
         title = "select files...",
         initialdir='/',
-        filetypes=FILE_TYPES)
+        filetypes=SUPPORTED_FILE_TYPES)
     addFilesToQueue(filenames)
+    # update file items list
+    packFileItemsList()
+
+def mergeFiles():
+    #ask for save path
+    FileItem.mergeFilesToPdf()
 
 # function to change properties of button on hover
 def changeOnHover(button,
@@ -106,7 +218,7 @@ def packTopMainLogo(background_color):
     
     logo_button.pack(fill=tk.X, side=tk.TOP)
 
-#red= #f40f02
+#red= #F40F02
 #green= #4CAF50
 packTopMainLogo("#4CAF50")    
 
@@ -139,10 +251,9 @@ else:
         command=selectFiles,
         image=browse_files_image)
 
-main_browse_button.pack(expand=True, fill=tk.BOTH)
-
 # hover effect
-changeOnHover(main_browse_button, "#3e8e41", "#4CAF50", "white", "white")
+changeOnHover(main_browse_button, "#3E8E41", "#4CAF50", "white", "white")
+main_browse_button.pack(expand=True, fill=tk.BOTH)
 
 # fixing the blur UI on Windows
 try:
