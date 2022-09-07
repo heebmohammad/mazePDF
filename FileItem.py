@@ -14,12 +14,20 @@ class FileItem:
     @staticmethod
     def get_file_type(path):
         return (pathlib.Path(path).suffix).lower()
+
+    @staticmethod
+    def get_file_name(path):
+        return (pathlib.Path(path).stem)
+    
+    @staticmethod
+    def get_file_size(path):
+        return (os.path.getsize(path))
     
     def __init__(self, file_paht):
         self.file_path = file_paht
-        self.file_name = ""
+        self.file_name = FileItem.get_file_name(file_paht)
         self.file_type = FileItem.get_file_type(file_paht)
-        self.size = 0
+        self.size = FileItem.get_file_size(file_paht)
 
         #add to file_items_list
         FileItem.file_items_list.append(self)
@@ -53,11 +61,15 @@ class FileItem:
             merger.write("merged_file.pdf")
             merger.close()
 
+# ****************************************************************************************************
+
 class PDFItem(FileItem):
     def __init__(self, file_paht):
         # call super function
         super().__init__(file_paht)
         
-        self.isEncrypted = PdfReader(self.file_path).is_encrypted
+        reader = PdfReader(self.file_path)
+        self.num_pages = len(reader.pages)
+        self.isEncrypted = reader.is_encrypted
         self.user_password = None
         self.owner_password = None
