@@ -1,0 +1,5 @@
+Iconset: Simple Icons by kxmylo
+Artist: kxmylo (Camilo Higuita)
+Iconset Homepage: http://kxmylo.deviantart.com/art/Simple-icon-theme-426040287
+License: GNU General Public License
+Commercial usage: Allowed

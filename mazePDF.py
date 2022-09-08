@@ -1,19 +1,52 @@
-from email.policy import default
-from glob import glob
-from operator import truth
-from textwrap import fill
+# mazePDF - Graphical user interface to work with pdf files
+# by: Mohammad Heeb
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# import
 import tkinter as tk
 from tkinter import Button, Canvas, Label, filedialog as fd
 from tkinter.messagebox import showerror, showinfo
-from tkinter import CENTER, TclError, ttk
-from typing import Container
+from tkinter import CENTER, TclError, ttk, font
 from FileItem import FileItem, PDFItem
+
+# ****************************************************************************************************
+# initial 
 
 # light or dark display mode
 display_mode = "DARK"
 
-# list of FileItem packed frames
-file_item_frames = []
+ASSETS_DIR_PATH = './assets/'
+# dictionary of assets
+assets_dict = {"main-logo" : {"path": 'images/maze_pdf_logo.png'},
+            "white-browse-files" : {"path": 'images/Folder-Open-icon.png'},
+            "pdf-file-icon" : {"path": 'soft_icons/document_icons/Adobe-PDF-Document-icon.png'},
+            "any-file-icon" : {"path": 'soft_icons/document_icons/Document-icon.png'},
+            "png-file-icon" : {"path": 'soft_icons/document_icons/Image-PNG-icon.png'},
+            "item-frame-up" : {"path": 'soft_icons/button_icons/Button-Upload-icon.png'},
+            "item-frame-down" : {"path": 'soft_icons/button_icons/Button-Download-icon.png'},
+            "delete-file" : {"path": 'soft_icons/button_icons/Button-Delete-icon.png'},
+            "add-file-gray" : {"path": 'soft_icons/button_icons/Button-Blank-Gray-icon.png'},
+            "lock-lock" : {"path": 'soft_icons/state_icons/Lock-Lock-icon.png'},
+            "lock-unlock" : {"path": 'soft_icons/state_icons/Lock-Unlock-icon.png'}
+            }
+
+def initialAssets():
+    for key, image_dict in assets_dict.items():
+        try:
+            image_dict["src"] = tk.PhotoImage(file= ASSETS_DIR_PATH + image_dict.get("path"))
+        except TclError as e:
+            # the tcl equivalent to None is ""
+            image_dict["src"] = ""
+
+def getAsset(key_asset):
+    image_dict = assets_dict.get(key_asset)
+    if image_dict == None:
+        return ""
+    else:
+        return image_dict.get("src", "")
+
+# initial stats and settings ???
+# initial language dictionary ???
 
 SUPPORTED_FILE_TYPES = (
     ("pdf files", "*.pdf"),
@@ -25,47 +58,10 @@ SUPPORTED_FILE_TYPES = (
 def isSupportedFileType(file_type):
     return (any([("*" + file_type) in tup for tup in SUPPORTED_FILE_TYPES]))
 
-def packMultipleFilesControlers(container):
-    # merge files button
-    try:
-        browse_files_image = tk.PhotoImage(file='./assets/images/0000.png')
-    except TclError as e: 
-        merge_files_button = tk.Button(container, 
-            text="Merge Files",
-            bd=0,
-            bg="#E7E7E7",
-            activebackground="#E7E7E7",
-            fg="black",
-            activeforeground="black",
-            font = ("Times new roman", 24),
-            height=2,
-            width=18,
-            command=mergeFiles)
-    else:
-        #fix???
-        merge_files_button = tk.Button(container, 
-            text=" Browse...",
-            bd=0,
-            bg="#4CAF50",
-            activebackground="#4CAF50",
-            fg="white",
-            activeforeground="white",
-            font = ("Times new roman", 50),
-            height=350,
-            width=500,
-            command=selectFiles,
-            image=browse_files_image)
-
-    # hover effect
-    changeOnHover(merge_files_button, "#F44336", "#E7E7E7", "white", "black")
-    merge_files_button.pack()
-
-#==================================================================================================    
-
-
-
 # ****************************************************************************************************
 # show messages functions
+
+# show Libs used, name, install command, url ???
 
 def showProgramInfo():
     showinfo(title="about mazePDF", message="M.HEEB!")
@@ -103,6 +99,8 @@ def showSomethingWentWrong(message, exception):
         message + "\n\nDetails:\n" + str(exception))
 
 # ****************************************************************************************************
+# controlers functions
+# try methods of FileItem and catch if something went wrong
 
 def addFileItems(filenames):
     # list of unsupported files and their types
@@ -125,7 +123,9 @@ def addFileItems(filenames):
 def selectFiles():
     filenames = fd.askopenfilenames(
         title = "select files...",
-        initialdir='/',
+        #change initial dir
+        #initialdir='/',
+        initialdir="C:/Users/moham/Downloads",
         filetypes=SUPPORTED_FILE_TYPES)
     addFileItems(filenames)
 
@@ -148,6 +148,50 @@ def mergeFiles():
         FileItem.mergeFilesToPdf()
     except Exception as e:
         showSomethingWentWrong("merge files failed!", e)
+
+def openFile(file_item):
+    try:
+        # if file_type == ".pdf": open in tkinter ???
+        FileItem.open_file(file_item.file_path)
+    except Exception as e:
+        file_name = FileItem.getFileName(file_item)
+        showSomethingWentWrong("openning " + file_name + "failed!" , e)
+
+def sortItemsDisplay():
+    try:
+        FileItem.sortFileItemsList()
+        updateDisplay()
+    except Exception as e:
+        showSomethingWentWrong("failed to sort." , e)
+
+def reverseItemsDisplay():
+    try:
+        FileItem.reverseFileItemsList()
+        updateDisplay()
+    except Exception as e:
+        showSomethingWentWrong("failed to reverse." , e)
+
+def deleteFileItem(file_item):
+    try:
+        FileItem.deleteFileItems(file_item)
+        updateDisplay()
+    except Exception as e:
+        file_name = FileItem.getFileName(file_item)
+        showSomethingWentWrong("failed to delete " + file_name , e)
+
+def upFileItem(file_item):
+    try:
+        FileItem.forewardFileItems(file_item)
+        updateDisplay()
+    except Exception as e:
+        showSomethingWentWrong("error up!", e)
+
+def downFileItem(file_item):
+    try:
+        FileItem.backwardFileItems(file_item)
+        updateDisplay()
+    except Exception as e:
+        showSomethingWentWrong("error down!", e)
 
 # ****************************************************************************************************
 # style functions
@@ -184,13 +228,24 @@ def getThemeColor(mode=""):
     else:
         return DEFAULT_RED
 
-# set main window color
+# set frame background color
 def setFrameColor(frame):
     frame.config(bg=getBackgroundColor(display_mode))
 
 # set main logo color
 def setMainLogoColor(color):
     main_logo_button.config(bg=color, activebackground=color)
+
+# set style of button to red and gray
+def setControlerStyle(button):
+    button.config(bd=0,
+        bg="#E7E7E7",
+        activebackground="#E7E7E7",
+        fg="black",
+        activeforeground="black",
+        font = ("Century Gothic", 16, "bold"))
+    # hover effect
+    changeOnHover(button, "#F44336", "#E7E7E7", "white", "black")
 
 # function to change properties of button on hover
 def changeOnHover(button :Button,
@@ -219,6 +274,7 @@ def clearDisplay():
 # update main window display
 def updateDisplay():
     clearDisplay()
+    setFrameColor(root_frame)
 
     file_items_cnt = len(FileItem.file_items_list)
     if file_items_cnt == 0:
@@ -226,7 +282,9 @@ def updateDisplay():
     elif file_items_cnt > 1:
         packMultipleFilesDisplay()
     elif FileItem.file_items_list[0].file_type == ".pdf":
-        # single pdf display
+        packSinglePDFDisplay()
+    elif FileItem.file_items_list[0].file_type == ".png":
+        # single png display
         pass
 
 # Main Display
@@ -236,15 +294,18 @@ def packMainDisplay():
 
 # Multiple Files Display    
 def packMultipleFilesDisplay():
-    setFrameColor(root_frame)
     packTopMainLogo(root_frame, getThemeColor(display_mode))
 
     # pack a scrollable frame and return it 
     scrollable_container = getScrollableContainer(root_frame)
-    packFileItemsList(scrollable_container)
+    gridFileItemsList(scrollable_container)
     packMultipleFilesControlers(root_frame)
 
-#Single PDF Display
+# Single PDF Display
+def packSinglePDFDisplay():
+    packTopMainLogo(root_frame, getThemeColor(display_mode))
+    packAddFilesButton(root_frame)
+
 #Single PNG Display
 
 # pack canvas and scrollbar, and return the srollable frame
@@ -285,69 +346,51 @@ def getScrollableContainer(container):
 
 # pack maze pdf main logo
 def packTopMainLogo(container, background_color):
+    # to enable setting theme
     global main_logo_button
-    global logo_image
-    try:
-        logo_image = tk.PhotoImage(file='./assets/images/maze_pdf_logo.png')
-    except TclError as e:
+
+    logo_image = getAsset("main-logo")
+    if logo_image != "":
         main_logo_button = tk.Button(container,
-            text="mazePDF",
-            font = ("Arial Rounded MT Bold", 70, "bold"),
-            bd=0,
-            bg=background_color,
-            activebackground=background_color,
-            fg="white", 
-            activeforeground="white",
-            command=showProgramInfo)
+        text=" mazePDF",
+        font = ("Arial Rounded MT Bold", 70, "bold"),
+        pady= 5,
+        bd=0,
+        bg=background_color,
+        activebackground=background_color,
+        fg="white", 
+        activeforeground="white",
+        height=96,
+        width=96,
+        command=showProgramInfo,
+        image=logo_image,
+        compound="left")
     else:
         main_logo_button = tk.Button(container,
-            text=" mazePDF",
-            font = ("Arial Rounded MT Bold", 70, "bold"),
-            pady= 5,
-            bd=0,
-            bg=background_color,
-            activebackground=background_color,
-            fg="white", 
-            activeforeground="white",
-            height=96,
-            width=96,
-            command=showProgramInfo,
-            image=logo_image,
-            compound="left")
+        text="mazePDF",
+        font = ("Arial Rounded MT Bold", 70, "bold"),
+        bd=0,
+        bg=background_color,
+        activebackground=background_color,
+        fg="white", 
+        activeforeground="white",
+        command=showProgramInfo)
     
     main_logo_button.pack(fill=tk.X, side=tk.TOP)
 
 # pack main browse files button
 def packMainBrowseButton(container, background_color):
-    global main_browse_button
-    global browse_files_image
-    try:
-        browse_files_image = tk.PhotoImage(file='./assets/images/Folder-Open-icon.png')
-    except TclError as e: 
-        main_browse_button = tk.Button(container, 
-            text="Browse...",
-            bd=0,
-            bg=background_color,
-            activebackground=background_color,
-            fg="white",
-            activeforeground="white",
-            font = ("Times new roman", 50),
-            height=2,
-            width=18,
-            command=selectFiles)
-    else:
-        main_browse_button = tk.Button(container, 
-            text=" Browse...",
-            bd=0,
-            bg=background_color,
-            activebackground=background_color,
-            fg="white",
-            activeforeground="white",
-            font = ("Times new roman", 50),
-            height=350,
-            width=500,
-            command=selectFiles,
-            image=browse_files_image)
+    browse_files_image = getAsset("white-browse-files")
+    main_browse_button = tk.Button(container, 
+        text="Browse...",
+        bd=0,
+        bg=background_color,
+        activebackground=background_color,
+        fg="white",
+        activeforeground="white",
+        font = ("Times new roman", 50),
+        command=selectFiles,
+        image=browse_files_image)
 
     # hover effect
     changeOnHover(main_browse_button, getAnalogousColor(background_color),
@@ -356,11 +399,67 @@ def packMainBrowseButton(container, background_color):
 
 # ====================================================================================================
 
-def packFileItemsList(container):
-    file_item_frames.clear()
+# convert index to row, column
+def getRowAndColumn(index):
+    columns_num = 1
+    return int(index / columns_num), index % columns_num
+
+def getControledContainer(container, file_item, index):
+    foreground_color = getForegroundColor(display_mode)
+    background_color = getBackgroundColor(display_mode)
+    controled_container = tk.Frame(container, bg=background_color, bd=0)
+
+    row, column = getRowAndColumn(index)
+    # pady to determine the space between two frames
+    # padx to determine the space between the controled_container and the edge
+    controled_container.grid(row=row, column=column, pady=5, padx=5, sticky=tk.EW)
+
+    # item up button
+    Button(controled_container, 
+        image=getAsset("item-frame-up"),
+        bd=0,
+        text="up", 
+        bg=background_color, 
+        activebackground=background_color,
+        fg=foreground_color, 
+        activeforeground=foreground_color,
+        command=lambda: upFileItem(file_item)
+        ).grid(row=0, column=0, sticky=tk.S)
+
+    # item down button
+    Button(controled_container, 
+        image=getAsset("item-frame-down"),
+        bd=0,
+        text="down", 
+        bg=background_color, 
+        activebackground=background_color,
+        fg=foreground_color, 
+        activeforeground=foreground_color,
+        command=lambda: downFileItem(file_item)
+        ).grid(row=1, column=0, sticky=tk.N)
+
+    # item delete button
+    Button(controled_container, 
+        image=getAsset("delete-file"),
+        bd=0,
+        text="delete", 
+        bg=background_color, 
+        activebackground=background_color,
+        fg=foreground_color, 
+        activeforeground=foreground_color,
+        command=lambda: deleteFileItem(file_item)
+        ).grid(row=2, column=0, sticky=tk.EW)
+
+    return controled_container
+
+def gridFileItemsList(container):
+    i = 0
     for file_item in FileItem.file_items_list:
-        frame = createFileItemFrame(container, file_item)
-        file_item_frames.append(frame)
+        controled_container = getControledContainer(container, file_item, i)
+        frame = createFileItemFrame(controled_container, file_item)
+        # padx to determine the space between the frame controlers and the FileItem frame
+        frame.grid(row=0, column=1, rowspan=3, sticky=tk.NS, padx=5) 
+        i += 1       
         
 def createFileItemFrame(container, file_item: FileItem):
     if file_item.file_type == ".pdf":
@@ -368,67 +467,183 @@ def createFileItemFrame(container, file_item: FileItem):
     else:
         pass
 
+def getStyleLabel(container, label_text, is_bold=False):
+    foreground_color = getForegroundColor(display_mode)
+    background_color = getBackgroundColor(display_mode)
+    label_font = ("Century Gothic", 12)
+    if is_bold:
+        label_font = ("Century Gothic", 12, "bold")
+    return Label(container,
+        text=label_text,
+        background=background_color,
+        foreground=foreground_color,
+        font=label_font)
+
 def createPDFItemFrame(container, pdf_item: PDFItem):
     foreground_color = getForegroundColor(display_mode)
     background_color = getBackgroundColor(display_mode)
-    pdf_frame = tk.Frame(container, bg=background_color)
+    pdf_frame = tk.Frame(container, bg=background_color, bd=0)
     
     # file icon
-    Button(pdf_frame, text="icon", bg=background_color, activebackground=background_color,
-    fg=foreground_color, activeforeground=foreground_color).grid(row=0, column=0, rowspan=3, sticky=tk.NS)
+    Button(pdf_frame, 
+        image=getAsset("pdf-file-icon"),
+        bd=0,
+        text="open pdf", 
+        bg=background_color, 
+        activebackground=background_color,
+        fg=foreground_color, 
+        activeforeground=foreground_color,
+        command=lambda: openFile(pdf_item)
+        ).grid(row=0, column=0, rowspan=3, sticky=tk.NS)
 
     # file name
-    file_name = pdf_item.file_name + pdf_item.file_type
-    Label(pdf_frame, text=file_name, background=background_color,
-    foreground=foreground_color).grid(row=0, column=1, columnspan=2, sticky=tk.W)
+    getStyleLabel(pdf_frame, "name: " + FileItem.getFileName(pdf_item), True
+        ).grid(row=0, column=1, columnspan=2, sticky=tk.SW)
 
     # file size
-    file_size = str(pdf_item.size) + " bytes"
-    Label(pdf_frame, text=file_size, background=background_color,
-    foreground=foreground_color).grid(row=1, column=1, columnspan=2, sticky=tk.W)
+    getStyleLabel(pdf_frame, "size: " + FileItem.get_formatted_size(pdf_item.size)
+        ).grid(row=1, column=1, columnspan=2, sticky=tk.SW)
 
     # file number of pages
-    file_num_pages = str(pdf_item.num_pages) + " pages"
-    Label(pdf_frame, text=file_num_pages, background=background_color,
-    foreground=foreground_color).grid(row=2, column=1, columnspan=2, sticky=tk.W)
+    getStyleLabel(pdf_frame, PDFItem.getFormmatedPagesNumber(pdf_item)
+        ).grid(row=2, column=1, columnspan=2, sticky=tk.NW)
 
-    pdf_frame.pack(fill=tk.X, expand=True)
+    # is encrypted file
+    getIsEncryptedLabel(pdf_frame, pdf_item.is_encrypted
+        ).grid(row=3, column=0, sticky=tk.EW)
+
     return pdf_frame
+
+def getIsEncryptedLabel(container, is_encrypted):
+    foreground_color = getForegroundColor(display_mode)
+    background_color = getBackgroundColor(display_mode)
+    label_font = ("Century Gothic", 10)
+    if is_encrypted:
+        lock_image = getAsset("lock-lock")
+        return Label(container,
+            text=" Encrypted",
+            underline=1,
+            background=background_color,
+            foreground=foreground_color,
+            font=label_font,
+            image= lock_image,
+            compound=tk.LEFT)
+    else:
+        lock_image = getAsset("lock-unlock")
+        return Label(container,
+            text=" Decrypted",
+            underline=1,
+            background=background_color,
+            foreground=foreground_color,
+            font=label_font,
+            image= lock_image,
+            compound=tk.LEFT)
+
+# ====================================================================================================
+
+def packAddFilesButton(container):
+    background_color = getBackgroundColor(display_mode)
+    controlers_frame = tk.Frame(container, bg=background_color, bd=0)
+    controlers_frame.pack(fill=tk.X, pady=0)
+
+    # add files button
+    add_files_button = tk.Button(controlers_frame, 
+        text="Add Files",
+        command=selectFiles)
+    setControlerStyle(add_files_button)
+    add_files_button.pack(fill=tk.X, expand=True)
+
+def packMultipleFilesControlers(container):
+    background_color = getBackgroundColor(display_mode)
+    controlers_frame = tk.Frame(container, bg=background_color, bd=0)
+    controlers_frame.pack(fill=tk.X, pady=3)
+
+    # merge files button
+    merge_files_button = tk.Button(controlers_frame, 
+        text="Merge Files",
+        command=mergeFiles)
+    setControlerStyle(merge_files_button)
+    merge_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
+    # merge pages button
+    merge_pages_button = tk.Button(controlers_frame, 
+        text="Merge Pages",
+        command=mergeFiles,
+        state=tk.DISABLED)
+    setControlerStyle(merge_pages_button)
+    merge_pages_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
+    # sort files button
+    sort_button = tk.Button(controlers_frame, 
+        text="Sort",
+        command=sortItemsDisplay)
+    setControlerStyle(sort_button)
+    sort_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
+    # reverse files button
+    reverse_button = tk.Button(controlers_frame, 
+        text="Reverse",
+        command=reverseItemsDisplay)
+    setControlerStyle(reverse_button)
+    reverse_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
+    packAddFilesButton(container)
 
 # ****************************************************************************************************
 
-root = tk.Tk()
-root.title("mazePDF")
+# when mazePDF starts
+def startMaze():
+    initialRoot()
+    global root_frame
+    root_frame = tk.Frame(root)
 
-# set mazePDF icon
-try:
-    root.iconbitmap('./assets/icons/maze_pdf_icon.ico')
-except:
-    pass # ignore.
+    initialAssets()
+    #initialStats and thems and lang ???
 
-# enable resizing
-root.resizable(True, True)
+    updateDisplay()
 
-# get the screen dimension
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
+# when mazePDF ends
+def endMaze():
+    # save stats ???
+    print("Thank you for using mazePDF!")
 
-# set root dimension
-WINDOW_WIDTH = 700
-WINDOW_HEIGHT = 800
-root.minsize(600, 400)
-#WINDOW_WIDTH = int(screen_width * 0.5)
-#WINDOW_HEIGHT = int(screen_height * 0.95)
+# ====================================================================================================
 
-# find the center point
-center_x = int((screen_width / 2) - (WINDOW_WIDTH / 4))
-center_y = int((screen_height / 2) - (WINDOW_HEIGHT / 2))
+def initialRoot():
+    global root
+    root = tk.Tk()
+    root.title("mazePDF")
 
-# set the position of the window to the center of the screen
-root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{center_x}+{center_y}")
+    # set mazePDF icon
+    try:
+        root.iconbitmap('./assets/icons/maze_pdf_icon.ico')
+    except:
+        pass # ignore.
 
-root_frame = tk.Frame(root)
-updateDisplay()
+    # enable resizing
+    root.resizable(True, True)
+
+    # get the screen dimension
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # set root dimension
+    WINDOW_WIDTH = 700
+    WINDOW_HEIGHT = 800
+    root.minsize(600, 400)
+    #WINDOW_WIDTH = int(screen_width * 0.5)
+    #WINDOW_HEIGHT = int(screen_height * 0.95)
+
+    # find the center point
+    center_x = int((screen_width / 2) - (WINDOW_WIDTH / 4))
+    center_y = int((screen_height / 2) - (WINDOW_HEIGHT / 2))
+
+    # set the position of the window to the center of the screen
+    root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{center_x}+{center_y}")
+
+# ====================================================================================================
+startMaze()
+#print(font.families())
 
 # fixing the blur UI on Windows
 try:
@@ -436,3 +651,5 @@ try:
     windll.shcore.SetProcessDpiAwareness(1)
 finally:
     root.mainloop()
+
+endMaze()

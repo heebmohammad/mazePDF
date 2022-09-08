@@ -1,4 +1,5 @@
 import imp
+from operator import index
 import os
 import pathlib
 from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
@@ -22,7 +23,22 @@ class FileItem:
     @staticmethod
     def get_file_size(path):
         return (os.path.getsize(path))
-    
+
+    @staticmethod
+    def get_formatted_size(size):
+        power = 2**10
+        n = 0
+        power_labels = {0 : 'bytes', 1: 'KB', 2: 'MB', 3: 'GB', 
+            4: 'TB', 5: 'PB', 6: 'EB', 7: 'ZB', 8: 'YB'}
+        while size > power:
+            size /= power
+            n += 1
+        return str("%.2f" % size) + " " + power_labels[n]
+
+    @staticmethod
+    def open_file(path):
+        os.startfile(path)
+
     def __init__(self, file_paht):
         self.file_path = file_paht
         self.file_name = FileItem.get_file_name(file_paht)
@@ -35,6 +51,38 @@ class FileItem:
     #change FileItem representation to file path
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.file_path}')"
+
+    @classmethod
+    def getFileName(cls, file_item):
+        return (file_item.file_name + file_item.file_type)
+
+    @classmethod
+    def sortFileItemsList(cls):
+        FileItem.file_items_list.sort(key=FileItem.getFileName)
+
+    @classmethod
+    def reverseFileItemsList(cls):
+        FileItem.file_items_list.reverse()
+
+    @classmethod
+    def deleteFileItems(cls, file_item):
+        FileItem.file_items_list.remove(file_item)
+
+    @classmethod
+    def forewardFileItems(cls, file_item):
+        index = FileItem.file_items_list.index(file_item)
+        if (index == 0):
+            return
+        # swap
+        FileItem.file_items_list[index], FileItem.file_items_list[index - 1] = FileItem.file_items_list[index - 1], FileItem.file_items_list[index]
+
+    @classmethod
+    def backwardFileItems(cls, file_item):
+        index = FileItem.file_items_list.index(file_item)
+        if (index == len(FileItem.file_items_list) - 1):
+            return
+        # swap
+        FileItem.file_items_list[index], FileItem.file_items_list[index + 1] = FileItem.file_items_list[index + 1], FileItem.file_items_list[index]
 
     @classmethod
     def getPdfFilesPaths(cls):
@@ -69,7 +117,20 @@ class PDFItem(FileItem):
         super().__init__(file_paht)
         
         reader = PdfReader(self.file_path)
-        self.num_pages = len(reader.pages)
-        self.isEncrypted = reader.is_encrypted
+        self.num_pages = 0
+        self.is_encrypted = reader.is_encrypted
+        if not(self.is_encrypted):
+            self.num_pages = len(reader.pages)
+        self.show_password = False
         self.user_password = None
         self.owner_password = None
+
+    @classmethod
+    def getFormmatedPagesNumber(cls, pdf_item):
+        if pdf_item.is_encrypted and pdf_item.user_password == None:
+            return "cannot view pages number"
+        elif pdf_item.is_encrypted and pdf_item.user_password != None:
+            # decrypt and get pages number
+            return "trying to get pages number"
+        else:
+            return "pages number: " + str(pdf_item.num_pages) + " pages"
