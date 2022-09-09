@@ -52,11 +52,23 @@ SUPPORTED_FILE_TYPES = (
     ("pdf files", "*.pdf"),
     ("pdf files", "*.PDF"),
     ("png files", "*.png"),
-    ("All files", "*.*")
+    ("All Files", "*.*")
 )
 
 def isSupportedFileType(file_type):
     return (any([("*" + file_type) in tup for tup in SUPPORTED_FILE_TYPES]))
+
+# last opened directory
+last_directory = '/'
+
+def getLastDirectory():
+    global last_directory
+    return last_directory
+
+def setLastDirectory(new_dir_path='/'):
+    global last_directory
+    if not(new_dir_path == ''):
+        last_directory = new_dir_path
 
 # ****************************************************************************************************
 # show messages functions
@@ -121,12 +133,12 @@ def addFileItems(filenames):
     showErrorSelectingFiles(unsupported_files, invalid_paths)
 
 def selectFiles():
+    global last_directory
     filenames = fd.askopenfilenames(
         title = "select files...",
-        #change initial dir
-        #initialdir='/',
-        initialdir="C:/Users/moham/Downloads",
+        initialdir=getLastDirectory(),
         filetypes=SUPPORTED_FILE_TYPES)
+    setLastDirectory(FileItem.getDirectoryPath(filenames))
     addFileItems(filenames)
 
     updateDisplay()
@@ -139,13 +151,19 @@ def createFileItem(file_path, file_type):
         else:
             FileItem(file_path)
     except Exception as e:
-        showSomethingWentWrong("Failed creating item file of \"" + file_path + "\"", e)
+        showSomethingWentWrong("Failed creating file item of \"" + file_path + "\"", e)
 
 # merge all files in file_items_list to pdf file
 def mergeFiles():
     #ask for save path
     try:
-        FileItem.mergeFilesToPdf()
+        save_file_path  =  fd.asksaveasfilename(
+            title = "save merged file as...",
+            initialdir = getLastDirectory(),
+            initialfile = "merged_file.pdf",
+            defaultextension=".txt",
+            filetypes = (("pdf file", "*.pdf"), ("All Files", "*.*")))
+        FileItem.mergeFilesToPdf(save_file_path)
     except Exception as e:
         showSomethingWentWrong("merge files failed!", e)
 

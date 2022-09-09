@@ -9,6 +9,13 @@ class FileItem:
     file_items_list = []
 
     @staticmethod
+    def getDirectoryPath(filenames):
+        if len(filenames) == 0:
+            return ''
+        else:
+            return os.path.dirname(filenames[0])
+
+    @staticmethod
     def is_valid_file_path(path):
         return (os.path.isfile(path))
     
@@ -106,7 +113,7 @@ class FileItem:
                 merger.append(pdf_file)
 
             #Write out the merged PDF file
-            merger.write("merged_file.pdf")
+            merger.write(merged_path)
             merger.close()
 
 # ****************************************************************************************************
