@@ -19,9 +19,13 @@ ASSETS_DIR_PATH = './assets/'
 # dictionary of assets
 assets_dict = {"main-logo" : {"path": 'images/maze_pdf_logo.png'},
             "white-browse-files" : {"path": 'images/Folder-Open-icon.png'},
-            "pdf-file-icon" : {"path": 'soft_icons/document_icons/Adobe-PDF-Document-icon.png'},
             "any-file-icon" : {"path": 'soft_icons/document_icons/Document-icon.png'},
+            "pdf-file-icon" : {"path": 'soft_icons/document_icons/Adobe-PDF-Document-icon.png'},
             "png-file-icon" : {"path": 'soft_icons/document_icons/Image-PNG-icon.png'},
+            "bmp-file-icon" : {"path": 'soft_icons/document_icons/Image-BMP-icon.png'},
+            "gif-file-icon" : {"path": 'soft_icons/document_icons/Image-GIF-icon.png'},
+            "jpeg-file-icon" : {"path": 'soft_icons/document_icons/Image-JPEG-icon.png'},
+            "tiff-file-icon" : {"path": 'soft_icons/document_icons/Image-TIFF-icon.png'},
             "item-frame-up" : {"path": 'soft_icons/button_icons/Button-Upload-icon.png'},
             "item-frame-down" : {"path": 'soft_icons/button_icons/Button-Download-icon.png'},
             "delete-file" : {"path": 'soft_icons/button_icons/Button-Delete-icon.png'},
@@ -50,6 +54,14 @@ def getFileIconAsset(file_type):
         return getAsset("pdf-file-icon")
     elif file_type == ".png":
         return getAsset("png-file-icon")
+    elif file_type == ".jpg" or file_type == ".jpeg":
+        return getAsset("jpeg-file-icon")
+    elif file_type == ".bmp":
+        return getAsset("bmp-file-icon")
+    elif file_type == ".tiff":
+        return getAsset("tiff-file-icon")
+    elif file_type == ".gif":
+        return getAsset("gif-file-icon")
     else:
         return getAsset("any-file-icon")
 
@@ -59,13 +71,18 @@ def getFileIconAsset(file_type):
 SUPPORTED_FILE_TYPES = (
     ("pdf files", ("*.pdf", "*.PDF")),
     ("png files", ("*.png", "*.PNG")),
-    ("jpg files", ("*.jpg", "*.jpeg", "*.JPG", "*.JPEG")),
-    ("im2 files", "*.im2"),
-    ("All Files", "*.*")
+    ("jpeg files", ("*.jpg", "*.jpeg", "*.JPG", "*.JPEG")),
+    ("bmp files", ("*.bmp", "*.BMP")),
+    ("tiff files", ("*.tiff", "*.TIFF")),
+    ("gif files", ("*.gif", "*.GIF")),
+    ("All Files", ("*.*"))
 )
 
 def isSupportedFileType(file_type):
     return (any([((("*" + file_type) in tup) for tup in row) for row in SUPPORTED_FILE_TYPES]))
+
+def isImageType(file_type):
+    return file_type in (".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".gif")
 
 # last opened directory
 last_directory = '/'
@@ -74,10 +91,9 @@ def getLastDirectory():
     global last_directory
     return last_directory
 
-def setLastDirectory(new_dir_path='/'):
+def setLastDirectory(file_path):
     global last_directory
-    if not(new_dir_path == ''):
-        last_directory = new_dir_path
+    last_directory = FileItem.getDirectoryPath(file_path)
 
 # ****************************************************************************************************
 # show messages functions
@@ -147,7 +163,8 @@ def selectFiles():
         title = "select files...",
         initialdir=getLastDirectory(),
         filetypes=SUPPORTED_FILE_TYPES)
-    setLastDirectory(FileItem.getDirectoryPath(filenames))
+    if len(filenames) != 0:
+        setLastDirectory(filenames[0])
     addFileItems(filenames)
 
     updateDisplay()
@@ -157,7 +174,7 @@ def createFileItem(file_path, file_type):
     try:
         if (file_type == ".pdf"):
             PDFItem(file_path)
-        elif (file_type == ".png"):
+        elif (isImageType(file_type)):
             ImageItem(file_path)
         else:
             FileItem(file_path)
@@ -172,9 +189,11 @@ def mergeFiles():
             title = "save merged file as...",
             initialdir = getLastDirectory(),
             initialfile = "merged_file.pdf",
-            defaultextension=".txt",
+            defaultextension=".pdf",
             filetypes = (("pdf file", "*.pdf"), ("All Files", "*.*")))
-        FileItem.mergeFilesToPdf(save_file_path)
+        if (save_file_path != ''):
+            FileItem.mergeFilesToPdf(save_file_path)
+            setLastDirectory(save_file_path)
     except Exception as e:
         showSomethingWentWrong("merge files failed!", e)
 
@@ -221,6 +240,52 @@ def downFileItem(file_item):
         updateDisplay()
     except Exception as e:
         showSomethingWentWrong("error down!", e)
+
+def convertImageToPDF(image_item):
+    try:
+        save_file_path  =  fd.asksaveasfilename(
+            title = "save image as pdf",
+            initialdir = getLastDirectory(),
+            initialfile = image_item.file_name + ".pdf",
+            defaultextension=".pdf",
+            filetypes = (("pdf file", "*.pdf"), ("All Files", "*.*")))
+        if (save_file_path != ''):
+            image_item.saveImageAsPDF(save_file_path)
+            setLastDirectory(save_file_path)
+    except Exception as e:
+        showSomethingWentWrong("error converting " + image_item.file_name + " to pdf", e)
+
+def saveImageAs(image_item):
+    try:
+        save_file_path  =  fd.asksaveasfilename(
+            title = "save image as...",
+            initialdir = getLastDirectory(),
+            initialfile = image_item.getFileName(),
+            defaultextension=image_item.file_type,
+            filetypes = SUPPORTED_FILE_TYPES)
+        if (save_file_path != ''):
+            image_item.saveImageAs(save_file_path)
+            setLastDirectory(save_file_path)
+    except Exception as e:
+        showSomethingWentWrong("error saving " + image_item.file_name, e)
+
+def grayscaleImage(image_item):
+    try:
+        image_item.grayscaleImage()
+    except Exception as e:
+        showSomethingWentWrong("error grayscaling " + image_item.file_name, e)
+
+def flipImageVertically(image_item):
+    try:
+        image_item.flipImageVertically()
+    except Exception as e:
+        showSomethingWentWrong("failed to flip " + image_item.file_name, e)
+
+def flipImageHorizontally(image_item):
+    try:
+        image_item.flipImageHorizontally()
+    except Exception as e:
+        showSomethingWentWrong("failed to flip " + image_item.file_name, e)
 
 # ****************************************************************************************************
 # style functions
@@ -428,19 +493,57 @@ def packSingleFileItemFrame(container, file_item):
     createFileItemFrame(container, file_item
         ).pack(fill=tk.Y, expand=True, pady=50)
 
+# ====================================================================================================
+
+# pack controller with style
+def packController(container, text, func=selectFiles):
+    button = tk.Button(container, text=text, command=func)
+    setControllerStyle(button)
+    button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
 # pack custom file item controllers
 def packFileItemControllers(container, file_item):
     file_type = file_item.file_type
     if file_type == ".pdf":
         # pack pdf controllers
         pass
-    elif file_type == ".png":
-        #pack png controllers
-        pass
+    elif isImageType(file_type):
+        packImageControllers(container, file_item)
 
     packAddFilesButton(container)
 
+def packImageControllers(container, image_item):
+    background_color = getBackgroundColor(display_mode)
+    controllers_frame = tk.Frame(container, bg=background_color, bd=0)
+    row_1 = tk.Frame(controllers_frame, bg=background_color, bd=0)
+    row_2 = tk.Frame(controllers_frame, bg=background_color, bd=0)
+    controllers_frame.pack(fill=tk.X, pady=3)
+    row_1.pack(fill=tk.X)
+    row_2.pack(fill=tk.X)
 
+    # convert to pdf button
+    packController(row_1, "Convert to PDF", lambda: convertImageToPDF(image_item))
+
+    # save as button
+    packController(row_1, "Save AS...", lambda: saveImageAs(image_item))
+
+    # grayscale button
+    packController(row_1, "Grayscale", lambda: grayscaleImage(image_item))
+
+    # blur button
+    packController(row_1, "Blur")
+
+    # resize button
+    packController(row_2, "Resize")
+
+    # rotate button
+    packController(row_2, "Rotate")
+
+    # flip top-bottom button
+    packController(row_2, "Vertical Flip", lambda: flipImageVertically(image_item))
+
+    # flip left-right button
+    packController(row_2, "Horizontal Flip", lambda: flipImageHorizontally(image_item))
 
 # ====================================================================================================
 
@@ -509,7 +612,7 @@ def gridFileItemsList(container):
 def createFileItemFrame(container, file_item: FileItem):
     if file_item.file_type == ".pdf":
         return createPDFItemFrame(container, file_item)
-    elif file_item.file_type == ".png":
+    elif isImageType(file_item.file_type):
         return createImageItemFrame(container, file_item)
     else:
         pass
