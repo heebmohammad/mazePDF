@@ -1,8 +1,7 @@
-import imp
-from operator import index
 import os
 import pathlib
 from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
+from PIL import Image
 
 class FileItem:
     # list to store the FileItems created.
@@ -31,8 +30,8 @@ class FileItem:
     def get_file_size(path):
         return (os.path.getsize(path))
 
-    @staticmethod
-    def get_formatted_size(size):
+    def getFormattedSize(self):
+        size = self.size 
         power = 2**10
         n = 0
         power_labels = {0 : 'bytes', 1: 'KB', 2: 'MB', 3: 'GB', 
@@ -59,9 +58,15 @@ class FileItem:
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.file_path}')"
 
+    def openFile(self):
+        FileItem.open_file(self.file_path)
+
+    def getFileName(self):
+        return (self.file_name + self.file_type)
+
     @classmethod
-    def getFileName(cls, file_item):
-        return (file_item.file_name + file_item.file_type)
+    def getFirstFileItem(cls):
+        return FileItem.file_items_list[0]
 
     @classmethod
     def sortFileItemsList(cls):
@@ -141,3 +146,20 @@ class PDFItem(FileItem):
             return "trying to get pages number"
         else:
             return "pages number: " + str(pdf_item.num_pages) + " pages"
+
+# ****************************************************************************************************
+
+class ImageItem(FileItem):
+    def __init__(self, file_paht):
+        # call super function
+        super().__init__(file_paht)
+        
+        #Load the image
+        self.img = Image.open(self.file_path)
+        self.image_format = self.img.format
+        self.image_mode = self.img.mode
+        self.image_width = self.img.size[0]
+        self.image_height = self.img.size[1]
+
+    def openFile(self):
+        self.img.show()
