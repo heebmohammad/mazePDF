@@ -47,7 +47,7 @@ class AppPreferences():
         self.display_mode = DISPLAY_MODES[0]
 
         # theme color
-        self.theme_color = ""
+        self.theme_color = THEME_COLORS["DEFAULT_GREEN"]
 
         # prepare assets
         self.assets_dict = ASSETS_DICTIONARY
@@ -149,6 +149,17 @@ class AppPreferences():
         
         # hover effect
         AppPreferences.changeOnHover(button, "#F44336", "#E7E7E7", "white", "black")
+
+    # set style of button simple style
+    def setFrameControlStyle(self, button):
+        foreground_color = self.getForegroundColor()
+        background_color = self.getBackgroundColor()
+        button.config(bd=0,
+            bg=background_color, 
+            activebackground=background_color,
+            fg=foreground_color, 
+            activeforeground=foreground_color,
+            font = ("Century Gothic", 10, "bold"))
 
     # function to change properties of button on hover
     @staticmethod

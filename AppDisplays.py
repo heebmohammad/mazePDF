@@ -41,36 +41,30 @@ class MainWindow(tk.Tk):
         # initialize App Preferences
         self.style = AppPreferences()
 
-        # main window container
-        self.main_container = tk.Frame(self)
-        self.main_container.pack(fill=tk.BOTH, expand=True)
-
         # main window header logo
-        self.main_logo_button = self.packTopMainLogo(self.main_container)
-        self.style.setButtonColor(self.main_logo_button)
+        self.main_logo_button = ""
 
         # main window display (pages) container
-        self.display_container = tk.Frame(self.main_container)
+        self.display_container = tk.Frame(self)
         self.display_container.pack(fill=tk.BOTH, expand=True)
 
         # main window footer
         self.is_footer = False
-        self.main_footer = tk.Frame(self.main_container)
-        self.main_footer.pack(fill=tk.X, expand=True)
+        #self.main_footer = tk.Frame(self)
+        #self.main_footer.pack(fill=tk.X, expand=True)
 
 # ====================================================================================================
 
     # clear main window display container
     def clearDisplay(self):
         self.display_container.destroy()
-        self.display_container = tk.Frame(self.main_container)
+        self.display_container = tk.Frame(self)
         self.display_container.pack(fill=tk.BOTH, expand=True)
         self.style.setFrameColor(self.display_container)
 
     # update main window display container
     def updateDisplay(self):
         self.clearDisplay()
-        self.style.setButtonColor(self.main_logo_button)
 
         file_items_cnt = FileItem.getFileItemsCnt()
         if file_items_cnt == 0:
@@ -84,13 +78,14 @@ class MainWindow(tk.Tk):
     
     # Main Display
     def packMainDisplay(self):
+        self.packTopMainLogo(self.display_container, True)
         self.style.setButtonColor(self.main_logo_button, True)
         BrowseFilesButton(self.display_container, self, True)
         # footer ???
 
     # Multiple Files Display    
     def packMultipleFilesDisplay(self):
-        self.style.setButtonColor(self.main_logo_button)
+        self.packTopMainLogo(self.display_container)
         # footer ???
 
         # pack a scrollable frame and return it 
@@ -100,7 +95,7 @@ class MainWindow(tk.Tk):
 
     # Single Item Display
     def packSingleItemDisplay(self):
-        self.style.setButtonColor(self.main_logo_button)
+        self.packTopMainLogo(self.display_container)
         # footer ???
 
         file_item = FileItem.getFirstFileItem()
@@ -110,10 +105,10 @@ class MainWindow(tk.Tk):
 # ====================================================================================================
     
     # pack mazePDF main logo
-    def packTopMainLogo(self, container):
+    def packTopMainLogo(self, container, follow_theme=False):
         logo_image = self.style.getAsset("main-logo")
         if logo_image != "":
-            main_logo_button = tk.Button(container,
+            self.main_logo_button = tk.Button(container,
             text=" mazePDF",
             font = ("Arial Rounded MT Bold", 70, "bold"),
             pady= 5,
@@ -124,14 +119,23 @@ class MainWindow(tk.Tk):
             image=logo_image,
             compound="left")
         else:
-            main_logo_button = tk.Button(container,
+            self.main_logo_button = tk.Button(container,
             text="mazePDF",
             font = ("Arial Rounded MT Bold", 70, "bold"),
             bd=0,
             command=showProgramInfo)
         
-        main_logo_button.pack(fill=tk.X, side=tk.TOP)
-        return main_logo_button
+        self.style.setButtonColor(self.main_logo_button, follow_theme)
+        self.main_logo_button.pack(fill=tk.X, side=tk.TOP)
 
 def showProgramInfo():
     showinfo(title="about mazePDF", message="M.HEEB!")
+
+root = MainWindow()
+root.updateDisplay()
+# fixing the blur UI on Windows
+try:
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(1)
+finally:
+    root.mainloop()
