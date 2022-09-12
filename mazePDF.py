@@ -773,6 +773,18 @@ def packMultipleFilesControllers(container):
     packAddFilesButton(container)
 
 # ****************************************************************************************************
+# popup windows
+
+def openPopupWindow(title):
+    popup_window = tk.Toplevel()
+    popup_window.title(title)
+    popup_window.config(width=300, height=200)
+    # get focus automatically
+    popup_window.focus()
+    # modal window (disable user from using the main window while the popup window is visible)
+    popup_window.grab_set()
+
+# ****************************************************************************************************
 
 # when mazePDF starts
 def startMaze():
