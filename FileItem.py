@@ -1,15 +1,21 @@
 import os
 import pathlib
+from tkinter.messagebox import showerror
 from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
 from PIL import Image
+
 
 class FileItem:
     # list to store the FileItems created.
     file_items_list = []
 
+    @classmethod
+    def getFileItemsCnt(cls):
+        return len(cls.file_items_list)
+
     @staticmethod
-    def getDirectoryPath(file_path):
-        return os.path.dirname(file_path)
+    def showSomethingWentWrong(message, exception):
+        showerror("something went wrong", message + "\n\nDetails:\n" + str(exception))
 
     @staticmethod
     def is_valid_file_path(path):
