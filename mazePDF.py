@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import Button, Canvas, Label, filedialog as fd
 from tkinter.messagebox import showerror, showinfo
 from tkinter import CENTER, TclError, ttk, font
-from FileItem import FileItem, PDFItem
+from FileItem import FileItem, PDFItem, ImageItem
 
 # ****************************************************************************************************
 # initial 
@@ -19,9 +19,13 @@ ASSETS_DIR_PATH = './assets/'
 # dictionary of assets
 assets_dict = {"main-logo" : {"path": 'images/maze_pdf_logo.png'},
             "white-browse-files" : {"path": 'images/Folder-Open-icon.png'},
-            "pdf-file-icon" : {"path": 'soft_icons/document_icons/Adobe-PDF-Document-icon.png'},
             "any-file-icon" : {"path": 'soft_icons/document_icons/Document-icon.png'},
+            "pdf-file-icon" : {"path": 'soft_icons/document_icons/Adobe-PDF-Document-icon.png'},
             "png-file-icon" : {"path": 'soft_icons/document_icons/Image-PNG-icon.png'},
+            "bmp-file-icon" : {"path": 'soft_icons/document_icons/Image-BMP-icon.png'},
+            "gif-file-icon" : {"path": 'soft_icons/document_icons/Image-GIF-icon.png'},
+            "jpeg-file-icon" : {"path": 'soft_icons/document_icons/Image-JPEG-icon.png'},
+            "tiff-file-icon" : {"path": 'soft_icons/document_icons/Image-TIFF-icon.png'},
             "item-frame-up" : {"path": 'soft_icons/button_icons/Button-Upload-icon.png'},
             "item-frame-down" : {"path": 'soft_icons/button_icons/Button-Download-icon.png'},
             "delete-file" : {"path": 'soft_icons/button_icons/Button-Delete-icon.png'},
@@ -45,18 +49,40 @@ def getAsset(key_asset):
     else:
         return image_dict.get("src", "")
 
+def getFileIconAsset(file_type):
+    if file_type == ".pdf":
+        return getAsset("pdf-file-icon")
+    elif file_type == ".png":
+        return getAsset("png-file-icon")
+    elif file_type == ".jpg" or file_type == ".jpeg":
+        return getAsset("jpeg-file-icon")
+    elif file_type == ".bmp":
+        return getAsset("bmp-file-icon")
+    elif file_type == ".tiff":
+        return getAsset("tiff-file-icon")
+    elif file_type == ".gif":
+        return getAsset("gif-file-icon")
+    else:
+        return getAsset("any-file-icon")
+
 # initial stats and settings ???
 # initial language dictionary ???
 
 SUPPORTED_FILE_TYPES = (
-    ("pdf files", "*.pdf"),
-    ("pdf files", "*.PDF"),
-    ("png files", "*.png"),
-    ("All Files", "*.*")
+    ("pdf files", ("*.pdf", "*.PDF")),
+    ("png files", ("*.png", "*.PNG")),
+    ("jpeg files", ("*.jpg", "*.jpeg", "*.JPG", "*.JPEG")),
+    ("bmp files", ("*.bmp", "*.BMP")),
+    ("tiff files", ("*.tiff", "*.TIFF")),
+    ("gif files", ("*.gif", "*.GIF")),
+    ("All Files", ("*.*"))
 )
 
 def isSupportedFileType(file_type):
-    return (any([("*" + file_type) in tup for tup in SUPPORTED_FILE_TYPES]))
+    return (any([((("*" + file_type) in tup) for tup in row) for row in SUPPORTED_FILE_TYPES]))
+
+def isImageType(file_type):
+    return file_type in (".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".gif")
 
 # last opened directory
 last_directory = '/'
@@ -65,10 +91,9 @@ def getLastDirectory():
     global last_directory
     return last_directory
 
-def setLastDirectory(new_dir_path='/'):
+def setLastDirectory(file_path):
     global last_directory
-    if not(new_dir_path == ''):
-        last_directory = new_dir_path
+    last_directory = FileItem.getDirectoryPath(file_path)
 
 # ****************************************************************************************************
 # show messages functions
@@ -111,7 +136,7 @@ def showSomethingWentWrong(message, exception):
         message + "\n\nDetails:\n" + str(exception))
 
 # ****************************************************************************************************
-# controlers functions
+# controllers functions
 # try methods of FileItem and catch if something went wrong
 
 def addFileItems(filenames):
@@ -138,7 +163,8 @@ def selectFiles():
         title = "select files...",
         initialdir=getLastDirectory(),
         filetypes=SUPPORTED_FILE_TYPES)
-    setLastDirectory(FileItem.getDirectoryPath(filenames))
+    if len(filenames) != 0:
+        setLastDirectory(filenames[0])
     addFileItems(filenames)
 
     updateDisplay()
@@ -148,6 +174,8 @@ def createFileItem(file_path, file_type):
     try:
         if (file_type == ".pdf"):
             PDFItem(file_path)
+        elif (isImageType(file_type)):
+            ImageItem(file_path)
         else:
             FileItem(file_path)
     except Exception as e:
@@ -161,16 +189,18 @@ def mergeFiles():
             title = "save merged file as...",
             initialdir = getLastDirectory(),
             initialfile = "merged_file.pdf",
-            defaultextension=".txt",
+            defaultextension=".pdf",
             filetypes = (("pdf file", "*.pdf"), ("All Files", "*.*")))
-        FileItem.mergeFilesToPdf(save_file_path)
+        if (save_file_path != ''):
+            FileItem.mergeFilesToPdf(save_file_path)
+            setLastDirectory(save_file_path)
     except Exception as e:
         showSomethingWentWrong("merge files failed!", e)
 
 def openFile(file_item):
     try:
         # if file_type == ".pdf": open in tkinter ???
-        FileItem.open_file(file_item.file_path)
+        file_item.openFile()
     except Exception as e:
         file_name = FileItem.getFileName(file_item)
         showSomethingWentWrong("openning " + file_name + "failed!" , e)
@@ -210,6 +240,52 @@ def downFileItem(file_item):
         updateDisplay()
     except Exception as e:
         showSomethingWentWrong("error down!", e)
+
+def convertImageToPDF(image_item):
+    try:
+        save_file_path  =  fd.asksaveasfilename(
+            title = "save image as pdf",
+            initialdir = getLastDirectory(),
+            initialfile = image_item.file_name + ".pdf",
+            defaultextension=".pdf",
+            filetypes = (("pdf file", "*.pdf"), ("All Files", "*.*")))
+        if (save_file_path != ''):
+            image_item.saveImageAsPDF(save_file_path)
+            setLastDirectory(save_file_path)
+    except Exception as e:
+        showSomethingWentWrong("error converting " + image_item.file_name + " to pdf", e)
+
+def saveImageAs(image_item):
+    try:
+        save_file_path  =  fd.asksaveasfilename(
+            title = "save image as...",
+            initialdir = getLastDirectory(),
+            initialfile = image_item.getFileName(),
+            defaultextension=image_item.file_type,
+            filetypes = SUPPORTED_FILE_TYPES)
+        if (save_file_path != ''):
+            image_item.saveImageAs(save_file_path)
+            setLastDirectory(save_file_path)
+    except Exception as e:
+        showSomethingWentWrong("error saving " + image_item.file_name, e)
+
+def grayscaleImage(image_item):
+    try:
+        image_item.grayscaleImage()
+    except Exception as e:
+        showSomethingWentWrong("error grayscaling " + image_item.file_name, e)
+
+def flipImageVertically(image_item):
+    try:
+        image_item.flipImageVertically()
+    except Exception as e:
+        showSomethingWentWrong("failed to flip " + image_item.file_name, e)
+
+def flipImageHorizontally(image_item):
+    try:
+        image_item.flipImageHorizontally()
+    except Exception as e:
+        showSomethingWentWrong("failed to flip " + image_item.file_name, e)
 
 # ****************************************************************************************************
 # style functions
@@ -255,7 +331,7 @@ def setMainLogoColor(color):
     main_logo_button.config(bg=color, activebackground=color)
 
 # set style of button to red and gray
-def setControlerStyle(button):
+def setControllerStyle(button):
     button.config(bd=0,
         bg="#E7E7E7",
         activebackground="#E7E7E7",
@@ -297,13 +373,10 @@ def updateDisplay():
     file_items_cnt = len(FileItem.file_items_list)
     if file_items_cnt == 0:
         packMainDisplay()
-    elif file_items_cnt > 1:
+    elif file_items_cnt == 1:
+        packSingleItemDisplay()
+    else:
         packMultipleFilesDisplay()
-    elif FileItem.file_items_list[0].file_type == ".pdf":
-        packSinglePDFDisplay()
-    elif FileItem.file_items_list[0].file_type == ".png":
-        # single png display
-        pass
 
 # Main Display
 def packMainDisplay():
@@ -313,18 +386,18 @@ def packMainDisplay():
 # Multiple Files Display    
 def packMultipleFilesDisplay():
     packTopMainLogo(root_frame, getThemeColor(display_mode))
-
     # pack a scrollable frame and return it 
     scrollable_container = getScrollableContainer(root_frame)
     gridFileItemsList(scrollable_container)
-    packMultipleFilesControlers(root_frame)
+    packMultipleFilesControllers(root_frame)
 
-# Single PDF Display
-def packSinglePDFDisplay():
+# Single Item Display
+def packSingleItemDisplay():
     packTopMainLogo(root_frame, getThemeColor(display_mode))
-    packAddFilesButton(root_frame)
-
-#Single PNG Display
+    file_item = FileItem.getFirstFileItem()
+    packSingleFileItemFrame(root_frame, file_item)
+    packFileItemControllers(root_frame, file_item)
+    # pack footer
 
 # pack canvas and scrollbar, and return the srollable frame
 def getScrollableContainer(container):
@@ -415,6 +488,63 @@ def packMainBrowseButton(container, background_color):
         background_color, "white", "white")
     main_browse_button.pack(expand=True, fill=tk.BOTH)
 
+# pack single file item frame
+def packSingleFileItemFrame(container, file_item):
+    createFileItemFrame(container, file_item
+        ).pack(fill=tk.Y, expand=True, pady=50)
+
+# ====================================================================================================
+
+# pack controller with style
+def packController(container, text, func=selectFiles):
+    button = tk.Button(container, text=text, command=func)
+    setControllerStyle(button)
+    button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
+# pack custom file item controllers
+def packFileItemControllers(container, file_item):
+    file_type = file_item.file_type
+    if file_type == ".pdf":
+        # pack pdf controllers
+        pass
+    elif isImageType(file_type):
+        packImageControllers(container, file_item)
+
+    packAddFilesButton(container)
+
+def packImageControllers(container, image_item):
+    background_color = getBackgroundColor(display_mode)
+    controllers_frame = tk.Frame(container, bg=background_color, bd=0)
+    row_1 = tk.Frame(controllers_frame, bg=background_color, bd=0)
+    row_2 = tk.Frame(controllers_frame, bg=background_color, bd=0)
+    controllers_frame.pack(fill=tk.X, pady=3)
+    row_1.pack(fill=tk.X)
+    row_2.pack(fill=tk.X)
+
+    # convert to pdf button
+    packController(row_1, "Convert to PDF", lambda: convertImageToPDF(image_item))
+
+    # save as button
+    packController(row_1, "Save AS...", lambda: saveImageAs(image_item))
+
+    # grayscale button
+    packController(row_1, "Grayscale", lambda: grayscaleImage(image_item))
+
+    # blur button
+    packController(row_1, "Blur")
+
+    # resize button
+    packController(row_2, "Resize")
+
+    # rotate button
+    packController(row_2, "Rotate")
+
+    # flip top-bottom button
+    packController(row_2, "Vertical Flip", lambda: flipImageVertically(image_item))
+
+    # flip left-right button
+    packController(row_2, "Horizontal Flip", lambda: flipImageHorizontally(image_item))
+
 # ====================================================================================================
 
 # convert index to row, column
@@ -475,13 +605,15 @@ def gridFileItemsList(container):
     for file_item in FileItem.file_items_list:
         controled_container = getControledContainer(container, file_item, i)
         frame = createFileItemFrame(controled_container, file_item)
-        # padx to determine the space between the frame controlers and the FileItem frame
+        # padx to determine the space between the frame controllers and the FileItem frame
         frame.grid(row=0, column=1, rowspan=3, sticky=tk.NS, padx=5) 
         i += 1       
         
 def createFileItemFrame(container, file_item: FileItem):
     if file_item.file_type == ".pdf":
         return createPDFItemFrame(container, file_item)
+    elif isImageType(file_item.file_type):
+        return createImageItemFrame(container, file_item)
     else:
         pass
 
@@ -497,6 +629,7 @@ def getStyleLabel(container, label_text, is_bold=False):
         foreground=foreground_color,
         font=label_font)
 
+# pdf item frame
 def createPDFItemFrame(container, pdf_item: PDFItem):
     foreground_color = getForegroundColor(display_mode)
     background_color = getBackgroundColor(display_mode)
@@ -504,7 +637,7 @@ def createPDFItemFrame(container, pdf_item: PDFItem):
     
     # file icon
     Button(pdf_frame, 
-        image=getAsset("pdf-file-icon"),
+        image=getFileIconAsset(pdf_item.file_type),
         bd=0,
         text="open pdf", 
         bg=background_color, 
@@ -515,11 +648,11 @@ def createPDFItemFrame(container, pdf_item: PDFItem):
         ).grid(row=0, column=0, rowspan=3, sticky=tk.NS)
 
     # file name
-    getStyleLabel(pdf_frame, "name: " + FileItem.getFileName(pdf_item), True
+    getStyleLabel(pdf_frame, "name: " + pdf_item.getFileName(), True
         ).grid(row=0, column=1, columnspan=2, sticky=tk.SW)
 
     # file size
-    getStyleLabel(pdf_frame, "size: " + FileItem.get_formatted_size(pdf_item.size)
+    getStyleLabel(pdf_frame, "size: " + pdf_item.getFormattedSize()
         ).grid(row=1, column=1, columnspan=2, sticky=tk.SW)
 
     # file number of pages
@@ -557,55 +690,99 @@ def getIsEncryptedLabel(container, is_encrypted):
             image= lock_image,
             compound=tk.LEFT)
 
+# image item frame
+def createImageItemFrame(container, image_item):
+    foreground_color = getForegroundColor(display_mode)
+    background_color = getBackgroundColor(display_mode)
+    image_frame = tk.Frame(container, bg=background_color, bd=0)
+    
+    # file icon
+    Button(image_frame, 
+        image=getFileIconAsset(image_item.file_type),
+        bd=0,
+        text="open image", 
+        bg=background_color, 
+        activebackground=background_color,
+        fg=foreground_color, 
+        activeforeground=foreground_color,
+        command=lambda: openFile(image_item)
+        ).grid(row=0, column=0, rowspan=3, sticky=tk.NS)
+
+    # file name
+    getStyleLabel(image_frame, "name: " + image_item.getFileName(), True
+        ).grid(row=0, column=1, sticky=tk.SW)
+
+    # image width
+    getStyleLabel(image_frame, "width: " + str(image_item.image_width)
+        ).grid(row=1, column=1, sticky=tk.SW)
+
+    # image height
+    getStyleLabel(image_frame, "height: " + str(image_item.image_height)
+        ).grid(row=2, column=1, sticky=tk.NW)
+
+    return image_frame
+
 # ====================================================================================================
 
 def packAddFilesButton(container):
     background_color = getBackgroundColor(display_mode)
-    controlers_frame = tk.Frame(container, bg=background_color, bd=0)
-    controlers_frame.pack(fill=tk.X, pady=0)
+    controllers_frame = tk.Frame(container, bg=background_color, bd=0)
+    controllers_frame.pack(fill=tk.X, pady=0)
 
     # add files button
-    add_files_button = tk.Button(controlers_frame, 
+    add_files_button = tk.Button(controllers_frame, 
         text="Add Files",
         command=selectFiles)
-    setControlerStyle(add_files_button)
+    setControllerStyle(add_files_button)
     add_files_button.pack(fill=tk.X, expand=True)
 
-def packMultipleFilesControlers(container):
+def packMultipleFilesControllers(container):
     background_color = getBackgroundColor(display_mode)
-    controlers_frame = tk.Frame(container, bg=background_color, bd=0)
-    controlers_frame.pack(fill=tk.X, pady=3)
+    controllers_frame = tk.Frame(container, bg=background_color, bd=0)
+    controllers_frame.pack(fill=tk.X, pady=3)
 
     # merge files button
-    merge_files_button = tk.Button(controlers_frame, 
+    merge_files_button = tk.Button(controllers_frame, 
         text="Merge Files",
         command=mergeFiles)
-    setControlerStyle(merge_files_button)
+    setControllerStyle(merge_files_button)
     merge_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
     # merge pages button
-    merge_pages_button = tk.Button(controlers_frame, 
+    merge_pages_button = tk.Button(controllers_frame, 
         text="Merge Pages",
         command=mergeFiles,
         state=tk.DISABLED)
-    setControlerStyle(merge_pages_button)
+    setControllerStyle(merge_pages_button)
     merge_pages_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
     # sort files button
-    sort_button = tk.Button(controlers_frame, 
+    sort_button = tk.Button(controllers_frame, 
         text="Sort",
         command=sortItemsDisplay)
-    setControlerStyle(sort_button)
+    setControllerStyle(sort_button)
     sort_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
     # reverse files button
-    reverse_button = tk.Button(controlers_frame, 
+    reverse_button = tk.Button(controllers_frame, 
         text="Reverse",
         command=reverseItemsDisplay)
-    setControlerStyle(reverse_button)
+    setControllerStyle(reverse_button)
     reverse_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
     packAddFilesButton(container)
+
+# ****************************************************************************************************
+# popup windows
+
+def openPopupWindow(title):
+    popup_window = tk.Toplevel()
+    popup_window.title(title)
+    popup_window.config(width=300, height=200)
+    # get focus automatically
+    popup_window.focus()
+    # modal window (disable user from using the main window while the popup window is visible)
+    popup_window.grab_set()
 
 # ****************************************************************************************************
 

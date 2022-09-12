@@ -1,19 +1,15 @@
-import imp
-from operator import index
 import os
 import pathlib
 from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
+from PIL import Image
 
 class FileItem:
     # list to store the FileItems created.
     file_items_list = []
 
     @staticmethod
-    def getDirectoryPath(filenames):
-        if len(filenames) == 0:
-            return ''
-        else:
-            return os.path.dirname(filenames[0])
+    def getDirectoryPath(file_path):
+        return os.path.dirname(file_path)
 
     @staticmethod
     def is_valid_file_path(path):
@@ -31,8 +27,8 @@ class FileItem:
     def get_file_size(path):
         return (os.path.getsize(path))
 
-    @staticmethod
-    def get_formatted_size(size):
+    def getFormattedSize(self):
+        size = self.size 
         power = 2**10
         n = 0
         power_labels = {0 : 'bytes', 1: 'KB', 2: 'MB', 3: 'GB', 
@@ -59,9 +55,15 @@ class FileItem:
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.file_path}')"
 
+    def openFile(self):
+        FileItem.open_file(self.file_path)
+
+    def getFileName(self):
+        return (self.file_name + self.file_type)
+
     @classmethod
-    def getFileName(cls, file_item):
-        return (file_item.file_name + file_item.file_type)
+    def getFirstFileItem(cls):
+        return FileItem.file_items_list[0]
 
     @classmethod
     def sortFileItemsList(cls):
@@ -141,3 +143,44 @@ class PDFItem(FileItem):
             return "trying to get pages number"
         else:
             return "pages number: " + str(pdf_item.num_pages) + " pages"
+
+# ****************************************************************************************************
+
+class ImageItem(FileItem):
+    def __init__(self, file_paht):
+        # call super function
+        super().__init__(file_paht)
+        
+        #Load the image
+        self.img = Image.open(self.file_path)
+        self.image_format = self.img.format
+        self.image_width = self.img.size[0]
+        self.image_height = self.img.size[1]
+
+    def openFile(self):
+        self.img.show()
+
+    def saveImageAsPDF(self, save_path):
+        if (self.img.mode == "RGBA"):
+            self.img = self.img.convert('RGB')
+        self.img.save(save_path, "PDF")
+    
+    def saveImageAs(self, save_path):
+        try:
+            self.img.save(save_path)
+        except OSError as e:
+            print(str(e) + " --> solution: converting to RGB...")
+            self.img = self.img.convert('RGB')
+            self.img.save(save_path)
+
+    def grayscaleImage(self):
+        self.img = self.img.convert('L')
+
+    def rotateImage(self):
+        self.img = self.img.rotate(45)
+
+    def flipImageVertically(self):
+        self.img = self.img.transpose(method=Image.FLIP_TOP_BOTTOM)
+
+    def flipImageHorizontally(self):
+        self.img = self.img.transpose(method=Image.FLIP_LEFT_RIGHT)
