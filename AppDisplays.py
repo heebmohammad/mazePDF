@@ -1,12 +1,19 @@
 import tkinter as tk
 from tkinter.messagebox import showinfo
 from AppPreferences import MAIN_ICON_PATH, AppPreferences
-from FileItem import FileItem, PDFItem, ImageItem
+from FileItem import FileItem
 from BrowseFiles import BrowseFilesButton
+from MultipleItemsDisplay import MultipleItemsDisplay
+
+# App Preferences
+app_style = AppPreferences()
 
 class MainWindow(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # initialize App Preferences
+        AppPreferences.initializeDefaultPreferences()
         
         # main window title
         self.title("mazePDF")
@@ -38,15 +45,8 @@ class MainWindow(tk.Tk):
         # set the position of the main window to the center of the screen
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{center_x}+{center_y}")
 
-        # initialize App Preferences
-        self.style = AppPreferences()
-
-        # main window header logo
-        self.main_logo_button = ""
-
         # main window display (pages) container
         self.display_container = tk.Frame(self)
-        self.display_container.pack(fill=tk.BOTH, expand=True)
 
         # main window footer
         self.is_footer = False
@@ -60,7 +60,7 @@ class MainWindow(tk.Tk):
         self.display_container.destroy()
         self.display_container = tk.Frame(self)
         self.display_container.pack(fill=tk.BOTH, expand=True)
-        self.style.setFrameColor(self.display_container)
+        app_style.setFrameColor(self.display_container)
 
     # update main window display container
     def updateDisplay(self):
@@ -72,26 +72,23 @@ class MainWindow(tk.Tk):
         elif file_items_cnt == 1:
             self.packSingleItemDisplay()
         else:
-            self.packMultipleFilesDisplay()
+            self.packMultipleItemsDisplay()
 
 # ====================================================================================================
     
     # Main Display
     def packMainDisplay(self):
         self.packTopMainLogo(self.display_container, True)
-        self.style.setButtonColor(self.main_logo_button, True)
-        BrowseFilesButton(self.display_container, self, True)
+        BrowseFilesButton(self.display_container, self).packFull()
         # footer ???
 
     # Multiple Files Display    
-    def packMultipleFilesDisplay(self):
+    def packMultipleItemsDisplay(self):
         self.packTopMainLogo(self.display_container)
+        multiple_files_display = MultipleItemsDisplay(self.display_container, self, 1)
+        multiple_files_display.pack(fill=tk.BOTH, expand=True)
+        BrowseFilesButton(self.display_container, self).packWide()
         # footer ???
-
-        # pack a scrollable frame and return it 
-        #scrollable_container = getScrollableContainer(root_frame)
-        #gridFileItemsList(scrollable_container)
-        #packMultipleFilesControllers(root_frame)
 
     # Single Item Display
     def packSingleItemDisplay(self):
@@ -106,7 +103,7 @@ class MainWindow(tk.Tk):
     
     # pack mazePDF main logo
     def packTopMainLogo(self, container, follow_theme=False):
-        logo_image = self.style.getAsset("main-logo")
+        logo_image = app_style.getAsset("main-logo")
         if logo_image != "":
             self.main_logo_button = tk.Button(container,
             text=" mazePDF",
@@ -125,7 +122,7 @@ class MainWindow(tk.Tk):
             bd=0,
             command=showProgramInfo)
         
-        self.style.setButtonColor(self.main_logo_button, follow_theme)
+        app_style.setButtonColor(self.main_logo_button, follow_theme)
         self.main_logo_button.pack(fill=tk.X, side=tk.TOP)
 
 def showProgramInfo():

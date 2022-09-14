@@ -1,8 +1,8 @@
+from cgitb import text
+from distutils.command.config import config
 import os
 import tkinter as tk
 from tkinter import TclError
-
-# Initial Preferences
 
 # modes of mazePDF display
 DISPLAY_MODES = ("DARK", "LIGHT")
@@ -37,9 +37,19 @@ ASSETS_DICTIONARY = {
 
 # ****************************************************************************************************
 
+# Singleton App Preferences Class
 class AppPreferences():
-    
-    def __init__(self):
+    __instance = None
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = super(AppPreferences, cls).__new__(cls)
+        return cls.__instance
+
+    @classmethod
+    def initializeDefaultPreferences(cls):
+        self = cls.__instance
+        
         # last opened directory
         self.last_directory = '/'
 
@@ -51,9 +61,9 @@ class AppPreferences():
 
         # prepare assets
         self.assets_dict = ASSETS_DICTIONARY
-        self.initialAssets()
+        self.initializeAssets()
 
-    def initialAssets(self):
+    def initializeAssets(self):
         for key, image_dict in self.assets_dict.items():
             try:
                 image_dict["src"] = tk.PhotoImage(file= ASSETS_DIR_PATH + image_dict.get("path"))
@@ -69,9 +79,9 @@ class AppPreferences():
         else:
             return image_dict.get("src", "")
 
-    def getFileIconAsset(self, file_type):
+    def getFileIconAssetKey(self, file_type):
         if file_type == ".pdf":
-            return self.getAsset("pdf-file-icon")
+            return ("pdf-file-icon")
         elif file_type == ".png":
             return self.getAsset("png-file-icon")
         elif file_type == ".jpg" or file_type == ".jpeg":
@@ -138,6 +148,22 @@ class AppPreferences():
             AppPreferences.getAnalogousColor(foreground_color),
             foreground_color)
 
+    def getItemControlButton(self, container, text, key_asset, func):
+        button = tk.Button(container, 
+            image=self.getAsset(key_asset),
+            text=text,
+            command=func
+        )
+        self.setFrameControlStyle(button)
+        return button
+
+    # pack controller with style
+    def packController(self, container, text, func):
+        button = tk.Button(container, text=text, command=func)
+        self.setControllerStyle(button)
+        button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+        return button
+
     # set style of button to red and gray
     def setControllerStyle(self, button):
         button.config(bd=0,
@@ -160,6 +186,40 @@ class AppPreferences():
             fg=foreground_color, 
             activeforeground=foreground_color,
             font = ("Century Gothic", 10, "bold"))
+
+    # get styled label
+    def getStyleLabel(self, container, label_text, is_bold=False):
+        foreground_color = self.getForegroundColor()
+        background_color = self.getBackgroundColor()
+        label_font = ("Century Gothic", 12)
+        if is_bold:
+            label_font = ("Century Gothic", 12, "bold")
+        return tk.Label(container,
+            text=label_text,
+            background=background_color,
+            foreground=foreground_color,
+            font=label_font)
+
+    def getIsEncryptedLabel(self, container, is_encrypted):
+        foreground_color = self.getForegroundColor()
+        background_color = self.getBackgroundColor()
+        label_font = ("Century Gothic", 10)
+        label = tk.Label(container,
+            underline=1,
+            background=background_color,
+            foreground=foreground_color,
+            font=label_font,
+            compound=tk.LEFT)
+        if is_encrypted:
+            lock_image = self.getAsset("lock-lock")
+            lock_text=" Encrypted"
+            label.config(text=lock_text, image=lock_image)
+        else:
+            lock_image = self.getAsset("lock-unlock")
+            lock_text=" Decrypted"
+            label.config(text=lock_text, image=lock_image)
+
+        return label
 
     # function to change properties of button on hover
     @staticmethod

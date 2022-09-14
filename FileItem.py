@@ -1,17 +1,12 @@
 import os
 import pathlib
+import tkinter as tk
 from tkinter.messagebox import showerror
-from PyPDF2 import PdfReader, PdfWriter, PdfFileMerger
+from PyPDF2 import PdfFileMerger
 from PIL import Image
 
-
 class FileItem:
-    # list to store the FileItems created.
-    file_items_list = []
-
-    @classmethod
-    def getFileItemsCnt(cls):
-        return len(cls.file_items_list)
+    # static methods to work with files
 
     @staticmethod
     def showSomethingWentWrong(message, exception):
@@ -32,41 +27,21 @@ class FileItem:
     @staticmethod
     def get_file_size(path):
         return (os.path.getsize(path))
-
-    def getFormattedSize(self):
-        size = self.size 
-        power = 2**10
-        n = 0
-        power_labels = {0 : 'bytes', 1: 'KB', 2: 'MB', 3: 'GB', 
-            4: 'TB', 5: 'PB', 6: 'EB', 7: 'ZB', 8: 'YB'}
-        while size > power:
-            size /= power
-            n += 1
-        return str("%.2f" % size) + " " + power_labels[n]
-
+    
     @staticmethod
-    def open_file(path):
+    def open_file_by_path(path):
         os.startfile(path)
 
-    def __init__(self, file_paht):
-        self.file_path = file_paht
-        self.file_name = FileItem.get_file_name(file_paht)
-        self.file_type = FileItem.get_file_type(file_paht)
-        self.size = FileItem.get_file_size(file_paht)
+# ****************************************************************************************************
+    # class methods to work with file items list
 
-        #add to file_items_list
-        FileItem.file_items_list.append(self)
+    # list to store the FileItems created.
+    file_items_list = []
+
+    @classmethod
+    def getFileItemsCnt(cls):
+        return len(cls.file_items_list)
     
-    #change FileItem representation to file path
-    def __repr__(self):
-        return f"{self.__class__.__name__}('{self.file_path}')"
-
-    def openFile(self):
-        FileItem.open_file(self.file_path)
-
-    def getFileName(self):
-        return (self.file_name + self.file_type)
-
     @classmethod
     def getFirstFileItem(cls):
         return FileItem.file_items_list[0]
@@ -107,6 +82,55 @@ class FileItem:
                 pdf_paths_list.append(file_item.file_path)
         return pdf_paths_list
 
+# ****************************************************************************************************
+
+    def __init__(self, file_paht):
+        self.file_path = file_paht
+        self.file_name = FileItem.get_file_name(file_paht)
+        self.file_type = FileItem.get_file_type(file_paht)
+        self.size = FileItem.get_file_size(file_paht)
+
+        #add to file_items_list
+        FileItem.file_items_list.append(self)
+    
+    #change FileItem representation to file path
+    def __repr__(self):
+        return f"{self.__class__.__name__}('{self.file_path}')"
+
+    def getFormattedSize(self):
+        size = self.size 
+        power = 2**10
+        n = 0
+        power_labels = {0 : 'bytes', 1: 'KB', 2: 'MB', 3: 'GB', 
+            4: 'TB', 5: 'PB', 6: 'EB', 7: 'ZB', 8: 'YB'}
+        while size > power:
+            size /= power
+            n += 1
+        return str("%.2f" % size) + " " + power_labels[n]
+
+    def getFileName(self):
+        return (self.file_name + self.file_type)
+
+# ****************************************************************************************************
+    # implement for each subclass of FileItem:
+
+    def convertToPDF(self):
+        FileItem.showSomethingWentWrong("cannot convert " + self.getFileName() + " to pdf",
+            "convertToPDF Function not implemented in class " + type(self).__name__)
+
+    def openFile(self):
+        try:
+            FileItem.open_file_by_path(self.file_path)
+        except Exception as e:
+            FileItem.showSomethingWentWrong("openning " + self.getFileName() + "failed!" , e)
+
+    def getPreview(self, container)-> tk.Frame:
+        pass
+
+    def getControllers(self, container)-> tk.Frame:
+        pass
+# ****************************************************************************************************
+
     @classmethod
     def mergeFilesToPdf(cls, merged_path="merged_file.pdf"):
         pdf_paths_list = FileItem.getPdfFilesPaths()
@@ -123,32 +147,6 @@ class FileItem:
             #Write out the merged PDF file
             merger.write(merged_path)
             merger.close()
-
-# ****************************************************************************************************
-
-class PDFItem(FileItem):
-    def __init__(self, file_paht):
-        # call super function
-        super().__init__(file_paht)
-        
-        reader = PdfReader(self.file_path)
-        self.num_pages = 0
-        self.is_encrypted = reader.is_encrypted
-        if not(self.is_encrypted):
-            self.num_pages = len(reader.pages)
-        self.show_password = False
-        self.user_password = None
-        self.owner_password = None
-
-    @classmethod
-    def getFormmatedPagesNumber(cls, pdf_item):
-        if pdf_item.is_encrypted and pdf_item.user_password == None:
-            return "cannot view pages number"
-        elif pdf_item.is_encrypted and pdf_item.user_password != None:
-            # decrypt and get pages number
-            return "trying to get pages number"
-        else:
-            return "pages number: " + str(pdf_item.num_pages) + " pages"
 
 # ****************************************************************************************************
 
@@ -190,3 +188,5 @@ class ImageItem(FileItem):
 
     def flipImageHorizontally(self):
         self.img = self.img.transpose(method=Image.FLIP_LEFT_RIGHT)
+
+# ****************************************************************************************************
