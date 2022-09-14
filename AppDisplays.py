@@ -93,11 +93,17 @@ class MainWindow(tk.Tk):
     # Single Item Display
     def packSingleItemDisplay(self):
         self.packTopMainLogo(self.display_container)
+        file_item = FileItem.getFirstFileItem()
+        self.packItemPreviewAndControllers(file_item)
+        BrowseFilesButton(self.display_container, self).packWide()
         # footer ???
 
-        file_item = FileItem.getFirstFileItem()
-        #packSingleFileItemFrame(root_frame, file_item)
-        #packFileItemControllers(root_frame, file_item)
+    # preview an item and its controllers
+    def packItemPreviewAndControllers(self, file_item):
+        self.file_item_preview = file_item.getPreview(self.display_container)
+        self.file_item_preview.pack(fill=tk.Y, expand=True, pady=50)
+        self.file_item_controllers = file_item.getControllers(self.display_container, self)
+        self.file_item_controllers.pack(fill=tk.X, pady=3)
 
 # ====================================================================================================
     
@@ -127,12 +133,3 @@ class MainWindow(tk.Tk):
 
 def showProgramInfo():
     showinfo(title="about mazePDF", message="M.HEEB!")
-
-root = MainWindow()
-root.updateDisplay()
-# fixing the blur UI on Windows
-try:
-    from ctypes import windll
-    windll.shcore.SetProcessDpiAwareness(1)
-finally:
-    root.mainloop()

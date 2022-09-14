@@ -1,6 +1,9 @@
 from tkinter.messagebox import showerror
-from FileItem import FileItem, ImageItem
+from FileItem import FileItem
+from ImageItem import ImageItem
 from PDFItem import PDFItem
+
+# automate importing Items Folder, Libs used (name, install command, url), supported types ???
 
 class FileItemFactory:
     # note: the factory does not maintain any of the instances it creates.

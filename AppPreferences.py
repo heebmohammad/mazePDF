@@ -83,7 +83,7 @@ class AppPreferences():
         if file_type == ".pdf":
             return ("pdf-file-icon")
         elif file_type == ".png":
-            return self.getAsset("png-file-icon")
+            return ("png-file-icon")
         elif file_type == ".jpg" or file_type == ".jpeg":
             return self.getAsset("jpeg-file-icon")
         elif file_type == ".bmp":
@@ -122,7 +122,7 @@ class AppPreferences():
 
     # set frame background color
     def setFrameColor(self, frame):
-        frame.config(bg=self.getBackgroundColor())
+        frame.config(bd=0, bg=self.getBackgroundColor())
 
     # set button color
     def setButtonColor(self, button, follow_theme=False):
@@ -158,7 +158,7 @@ class AppPreferences():
         return button
 
     # pack controller with style
-    def packController(self, container, text, func):
+    def packController(self, container, text, func=""):
         button = tk.Button(container, text=text, command=func)
         self.setControllerStyle(button)
         button.pack(fill=tk.X, side=tk.LEFT, expand=True)

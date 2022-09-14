@@ -3,7 +3,6 @@ import pathlib
 import tkinter as tk
 from tkinter.messagebox import showerror
 from PyPDF2 import PdfFileMerger
-from PIL import Image
 
 class FileItem:
     # static methods to work with files
@@ -127,7 +126,7 @@ class FileItem:
     def getPreview(self, container)-> tk.Frame:
         pass
 
-    def getControllers(self, container)-> tk.Frame:
+    def getControllers(self, container, window)-> tk.Frame:
         pass
 # ****************************************************************************************************
 
@@ -147,46 +146,5 @@ class FileItem:
             #Write out the merged PDF file
             merger.write(merged_path)
             merger.close()
-
-# ****************************************************************************************************
-
-class ImageItem(FileItem):
-    def __init__(self, file_paht):
-        # call super function
-        super().__init__(file_paht)
-        
-        #Load the image
-        self.img = Image.open(self.file_path)
-        self.image_format = self.img.format
-        self.image_width = self.img.size[0]
-        self.image_height = self.img.size[1]
-
-    def openFile(self):
-        self.img.show()
-
-    def saveImageAsPDF(self, save_path):
-        if (self.img.mode == "RGBA"):
-            self.img = self.img.convert('RGB')
-        self.img.save(save_path, "PDF")
-    
-    def saveImageAs(self, save_path):
-        try:
-            self.img.save(save_path)
-        except OSError as e:
-            print(str(e) + " --> solution: converting to RGB...")
-            self.img = self.img.convert('RGB')
-            self.img.save(save_path)
-
-    def grayscaleImage(self):
-        self.img = self.img.convert('L')
-
-    def rotateImage(self):
-        self.img = self.img.rotate(45)
-
-    def flipImageVertically(self):
-        self.img = self.img.transpose(method=Image.FLIP_TOP_BOTTOM)
-
-    def flipImageHorizontally(self):
-        self.img = self.img.transpose(method=Image.FLIP_LEFT_RIGHT)
 
 # ****************************************************************************************************
