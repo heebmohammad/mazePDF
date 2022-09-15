@@ -15,4 +15,4 @@
 
 needed python libraries: [**tkinter**](https://docs.python.org/3/library/tkinter.html), [**PyPDF2**](https://pypi.org/project/PyPDF2/), [**PIL**](https://pypi.org/project/Pillow/)
 
-![image](.\assets\screenshots\maze_pdf_1.png)
+![image](./assets/screenshots/maze_pdf_1.png)
