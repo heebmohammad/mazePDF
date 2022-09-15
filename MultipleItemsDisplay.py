@@ -152,23 +152,28 @@ class MultipleFilesControllers(tk.Frame):
         app_style.setFrameColor(self)
 
         # merge files button
-        self.merge_files_button = app_style.packController(
+        self.merge_files_button = app_style.getStyledController(
             self, "Merge Files", self.mergeFiles)
-        
+        self.merge_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
         # remove non-pdfs ???
         # full display (column_num = 3) ???
 
         # merge pages button
-        self.merge_pages_button = app_style.packController(
-            self, "Merge Pages", self.mergeFiles).config(state=tk.DISABLED)
+        self.merge_pages_button = app_style.getStyledController(
+            self, "Merge Pages", self.mergeFiles)
+        self.merge_pages_button.config(state=tk.DISABLED)
+        self.merge_pages_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
         # sort files button
-        self.sort_files_button = app_style.packController(
+        self.sort_files_button = app_style.getStyledController(
             self, "Sort", self.sortItemsDisplay)
+        self.sort_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
         # reverse files button
-        self.reverse_files_button = app_style.packController(
-            self, "Reverse", self.reverseItemsDisplay)                
+        self.reverse_files_button = app_style.getStyledController(
+            self, "Reverse", self.reverseItemsDisplay)      
+        self.reverse_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)          
 
 # ====================================================================================================
 

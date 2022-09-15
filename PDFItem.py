@@ -9,7 +9,7 @@
 import tkinter as tk
 from PyPDF2 import PdfReader
 from AppPreferences import AppPreferences
-from FileItem import FileItem
+from FileItem import FileItem, FileItemFrame
 
 # App Preferences
 app_style = AppPreferences()
@@ -43,28 +43,24 @@ class PDFItem(FileItem):
 # ****************************************************************************************************
 
 # PDF Item Preview:
-class PDFItemFrame(tk.Frame):
+class PDFItemFrame(FileItemFrame):
 
     def __init__(self, pdf_item: PDFItem, container):
-        super().__init__(container)
+        super().__init__(pdf_item, container)
         self.pdf_item = pdf_item
-
-        self.config(bd=0)
-        app_style.setFrameColor(self)
-        
+        self.packPDFPreview()
+    
+    def packPDFPreview(self):
         # open file button (file icon)
-        self.open_file_button = app_style.getItemControlButton(self, 
-            "open pdf",
-            app_style.getFileIconAssetKey(self.pdf_item.file_type), 
-            self.pdf_item.openFile)
+        self.open_file_button = self.getOpenFileButton()
         self.open_file_button.grid(row=0, column=0, rowspan=3, sticky=tk.NS)
 
         # file name
-        self.file_name_label = app_style.getStyleLabel(self, "name: " + self.pdf_item.getFileName(), True)
+        self.file_name_label = self.getFileNameLabel()
         self.file_name_label.grid(row=0, column=1, sticky=tk.SW)
 
         # file size
-        self.file_size_label = app_style.getStyleLabel(self, "size: " + self.pdf_item.getFormattedSize())
+        self.file_size_label = self.getFileSizeLabel()
         self.file_size_label.grid(row=1, column=1, sticky=tk.SW)
 
         # file number of pages

@@ -85,15 +85,15 @@ class AppPreferences():
         elif file_type == ".png":
             return ("png-file-icon")
         elif file_type == ".jpg" or file_type == ".jpeg":
-            return self.getAsset("jpeg-file-icon")
+            return ("jpeg-file-icon")
         elif file_type == ".bmp":
-            return self.getAsset("bmp-file-icon")
+            return ("bmp-file-icon")
         elif file_type == ".tiff":
-            return self.getAsset("tiff-file-icon")
+            return ("tiff-file-icon")
         elif file_type == ".gif":
-            return self.getAsset("gif-file-icon")
+            return ("gif-file-icon")
         else:
-            return self.getAsset("any-file-icon")
+            return ("any-file-icon")
 
     def getLastDirectory(self):
         return self.last_directory
@@ -157,11 +157,10 @@ class AppPreferences():
         self.setFrameControlStyle(button)
         return button
 
-    # pack controller with style
-    def packController(self, container, text, func=""):
+    # get styled controller
+    def getStyledController(self, container, text, func=""):
         button = tk.Button(container, text=text, command=func)
         self.setControllerStyle(button)
-        button.pack(fill=tk.X, side=tk.LEFT, expand=True)
         return button
 
     # set style of button to red and gray

@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import filedialog as fd
 from PIL import Image
 from AppPreferences import AppPreferences
-from FileItem import FileItem
+from FileItem import FileItem, FileItemControllers, FileItemFrame
 
 # App Preferences
 app_style = AppPreferences()
@@ -63,71 +63,88 @@ class ImageItem(FileItem):
 # ****************************************************************************************************
 
 # Image Item Preview:
-class ImageItemFrame(tk.Frame):
+class ImageItemFrame(FileItemFrame):
 
     def __init__(self, image_item: ImageItem, container):
-        super().__init__(container)
+        super().__init__(image_item, container)
         self.image_item = image_item
+        self.packImagePreview()
 
-        app_style.setFrameColor(self)
-
+    def packImagePreview(self):
         # open file button (file icon)
-        self.open_file_button = app_style.getItemControlButton(self, 
-            "open image",
-            app_style.getFileIconAssetKey(self.image_item.file_type), 
-            self.image_item.openFile)
+        self.open_file_button = self.getOpenFileButton()
         self.open_file_button.grid(row=0, column=0, rowspan=3, sticky=tk.NS)
 
         # file name
-        self.file_name_label = app_style.getStyleLabel(self, "name: " + self.image_item.getFileName(), True)
+        self.file_name_label = self.getFileNameLabel()
         self.file_name_label.grid(row=0, column=1, sticky=tk.SW)
 
         # image width
-        self.image_width_label = app_style.getStyleLabel(self, "width: " + str(image_item.image_width))
+        self.image_width_label = app_style.getStyleLabel(self, "width: " + str(self.image_item.image_width))
         self.image_width_label.grid(row=1, column=1, sticky=tk.SW)
 
         # image height
-        self.image_height_label = app_style.getStyleLabel(self, "height: " + str(image_item.image_height))
-        self.image_height_label.grid(row=2, column=1, sticky=tk.SW)
+        self.image_height_label = app_style.getStyleLabel(self, "height: " + str(self.image_item.image_height))
+        self.image_height_label.grid(row=2, column=1, sticky=tk.NW)
 
 # ****************************************************************************************************
 
 # Image Item Controllers
-class ImageItemControllers(tk.Frame):
+class ImageItemControllers(FileItemControllers):
     def __init__(self, image_item: ImageItem, container, window):
-        super().__init__(container)
+        super().__init__(image_item, container, window)
         self.image_item = image_item
-        self.window = window
+        self.packImageControllers()
 
-        app_style.setFrameColor(self)
+    def packImageControllers(self):
+        
+        side = tk.LEFT
+        expand = True
 
-        self.rows = [tk.Frame(self), tk.Frame(self)]
-        self.rows[0].pack(fill=tk.X)
-        self.rows[1].pack(fill=tk.X)
-
+        self.rows = self.packRows(1)
         # convert to pdf button
-        app_style.packController(self.rows[0], "Convert to PDF", self.saveImageAsPDF)
+        self.convert_to_pdf_button = app_style.getStyledController(
+            self.rows[0], "Convert to PDF", self.saveImageAsPDF)
+        self.convert_to_pdf_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
         # save as button
-        app_style.packController(self.rows[0], "Save AS...", self.saveImageAs)
+        self.save_as_button = app_style.getStyledController(
+            self.rows[0], "Save AS...", self.saveImageAs)
+        self.save_as_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+    #....................................................................................................#
+        side = tk.TOP
+        expand = True
 
+        self.columns = self.packColumns(3)
         # grayscale button
-        app_style.packController(self.rows[0], "Grayscale", self.grayscaleImage)
+        self.grayscale_button = app_style.getStyledController(
+            self.columns[0], "Grayscale", self.grayscaleImage)
+        self.grayscale_button.pack(fill=tk.X, side=side, expand=expand)
 
         # blur button
-        app_style.packController(self.rows[0], "Blur", "")
+        self.blur_button = app_style.getStyledController(
+            self.columns[0], "Blur")
+        self.blur_button.pack(fill=tk.X, side=side, expand=expand)
 
         # resize button
-        app_style.packController(self.rows[1], "Resize")
+        self.resize_button = app_style.getStyledController(
+            self.columns[1], "Resize")
+        self.resize_button.pack(fill=tk.X, side=side, expand=expand)
 
         # rotate button
-        app_style.packController(self.rows[1], "Rotate")
+        self.rotate_button = app_style.getStyledController(
+            self.columns[1], "Rotate")
+        self.rotate_button.pack(fill=tk.X, side=side, expand=expand)
 
         # flip top-bottom button
-        app_style.packController(self.rows[1], "Vertical Flip", self.flipImageVertically)
+        self.vertical_flip_button = app_style.getStyledController(
+            self.columns[2], "Vertical Flip", self.flipImageVertically)
+        self.vertical_flip_button.pack(fill=tk.X, side=side, expand=expand)
 
         # flip left-right button
-        app_style.packController(self.rows[1], "Horizontal Flip", self.flipImageHorizontally)
+        self.horizontal_flip_button = app_style.getStyledController(
+            self.columns[2], "Horizontal Flip", self.flipImageHorizontally)
+        self.horizontal_flip_button.pack(fill=tk.X, side=side, expand=expand)
 
 # ====================================================================================================
 

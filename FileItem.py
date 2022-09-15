@@ -3,6 +3,10 @@ import pathlib
 import tkinter as tk
 from tkinter.messagebox import showerror
 from PyPDF2 import PdfFileMerger
+from AppPreferences import AppPreferences
+
+# App Preferences
+app_style = AppPreferences()
 
 class FileItem:
     # static methods to work with files
@@ -124,10 +128,14 @@ class FileItem:
             FileItem.showSomethingWentWrong("openning " + self.getFileName() + "failed!" , e)
 
     def getPreview(self, container)-> tk.Frame:
-        pass
+        frame = FileItemFrame(self, container)
+        frame.packDefaultPreview()
+        return frame
 
     def getControllers(self, container, window)-> tk.Frame:
-        pass
+        controllers = FileItemControllers(self, container, window)
+        controllers.packDefaultControllers()
+        return controllers
 # ****************************************************************************************************
 
     @classmethod
@@ -148,3 +156,81 @@ class FileItem:
             merger.close()
 
 # ****************************************************************************************************
+
+# File Item Preview:
+class FileItemFrame(tk.Frame):
+
+    def __init__(self, file_item:  FileItem, container):
+        super().__init__(container)
+        self.container = container
+        self.file_item = file_item
+        app_style.setFrameColor(self)
+    
+    def packDefaultPreview(self):
+        self.destroy()
+        super().__init__(self.container)
+        app_style.setFrameColor(self)
+
+        # open file button (file icon)
+        self.open_file_button = self.getOpenFileButton()
+        self.open_file_button.grid(row=0, column=0, rowspan=3, sticky=tk.NS)
+
+        # file name
+        self.file_name_label = self.getFileNameLabel()
+        self.file_name_label.grid(row=0, column=1, sticky=tk.SW)
+
+        # file size
+        self.file_size_label = self.getFileSizeLabel()
+        self.file_size_label.grid(row=1, column=1, sticky=tk.SW)
+
+        # file type
+        self.file_type_label = self.getFileTypeLabel()
+        self.file_type_label.grid(row=2, column=1, sticky=tk.NW)
+
+    def getOpenFileButton(self):
+        open_file_button = app_style.getItemControlButton(self, 
+            "open file",
+            app_style.getFileIconAssetKey(self.file_item.file_type), 
+            self.file_item.openFile)
+        return open_file_button
+    
+    def getFileNameLabel(self):
+        return app_style.getStyleLabel(self, "name: " + self.file_item.getFileName(), True)
+
+    def getFileTypeLabel(self):
+        return app_style.getStyleLabel(self, "file type: " + self.file_item.file_type)
+
+    def getFileSizeLabel(self):
+        return app_style.getStyleLabel(self, "size: " + self.file_item.getFormattedSize())
+
+# ****************************************************************************************************
+
+# File Item Controllers
+class FileItemControllers(tk.Frame):
+    def __init__(self, file_item: FileItem, container, window):
+        super().__init__(container)
+        self.window = window
+        self.container = container
+        self.file_item = file_item
+        app_style.setFrameColor(self)
+    
+    def packDefaultControllers(self):
+        self.default_label = app_style.getStyleLabel(self, 
+            "no controllers available for " + self.file_item.getFileName())
+        self.default_label.pack(fill=tk.X, side=tk.TOP, anchor=tk.CENTER, padx=5, pady=10)
+
+    def packRows(self, rows_num):
+        rows_list = []
+        for i in range(rows_num):
+            rows_list.append(tk.Frame(self))
+            app_style.setFrameColor(rows_list[i])
+            rows_list[i].pack(fill=tk.X, side=tk.TOP)
+        return rows_list
+    
+    def packColumns(self, columns_num):
+        columns_list = []
+        for i in range(columns_num):
+            columns_list.append(tk.Frame(self))
+            app_style.setFrameColor(columns_list[i])
+            columns_list[i].pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+        return columns_list
