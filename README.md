@@ -1,5 +1,5 @@
 # **mazePDF**
-### _Graphical user interface to work with pdf files_
+## _Graphical user interface to work with pdf files_
 ### by: ***Mohammad Heeb***
 
 + merege the supported file types into single pdf file
@@ -14,6 +14,7 @@
 ***
 
 needed python libraries: [**tkinter**](https://docs.python.org/3/library/tkinter.html), [**PyPDF2**](https://pypi.org/project/PyPDF2/), [**PIL**](https://pypi.org/project/Pillow/)
+get the needed libraries installed, download the repository files and run [**mazePDF.py**](./mazePDF.py) to start
 
 ***
 ![image](./assets/screenshots/maze_pdf_1.png)

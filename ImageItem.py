@@ -2,7 +2,7 @@
 # - ImageItem.py by Mohammad Heeb
 # - add support to: (".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".gif") file types, types supported by PIL
 # - python libraries dependency: PIL
-# - Item Preview: X
+# - Item Preview: V
 # - Item Controllers: X
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -11,6 +11,7 @@ from tkinter import filedialog as fd
 from PIL import Image
 from AppPreferences import AppPreferences
 from FileItem import FileItem, FileItemControllers, FileItemFrame
+from InputWindow import InputWindow
 
 # App Preferences
 app_style = AppPreferences()
@@ -22,9 +23,11 @@ class ImageItem(FileItem):
         
         #Load the image
         self.img = Image.open(self.file_path)
-        self.image_format = self.img.format
-        self.image_width = self.img.size[0]
-        self.image_height = self.img.size[1]
+        self.updateSize()
+    
+    def updateSize(self):
+        self.image_width = self.img.width
+        self.image_height = self.img.height
 
     def openFile(self):
         self.img.show()
@@ -51,8 +54,9 @@ class ImageItem(FileItem):
     def grayscaleImage(self):
         self.img = self.img.convert('L')
 
-    def rotateImage(self):
-        self.img = self.img.rotate(45)
+    def rotateImage(self, angel):
+        self.img = self.img.rotate(angel, expand=True)
+        self.updateSize()
 
     def flipImageVertically(self):
         self.img = self.img.transpose(method=Image.FLIP_TOP_BOTTOM)
@@ -133,7 +137,7 @@ class ImageItemControllers(FileItemControllers):
 
         # rotate button
         self.rotate_button = app_style.getStyledController(
-            self.columns[1], "Rotate")
+            self.columns[1], "Rotate", self.rotateImage)
         self.rotate_button.pack(fill=tk.X, side=side, expand=expand)
 
         # flip top-bottom button
@@ -177,6 +181,25 @@ class ImageItemControllers(FileItemControllers):
                 app_style.setLastDirectory(save_file_path)
         except Exception as e:
             FileItem.showSomethingWentWrong("error saving " + self.image_item.file_name, e)
+
+# ====================================================================================================
+
+    def rotateImage(self):
+        try:
+            self.input_window = InputWindow(title="rotate image", 
+                fields=["angel"], 
+                description="enter an angel to rotate the image",
+                callback=self.validateAndCallRotate)
+        except Exception as e:
+            FileItem.showSomethingWentWrong("error rotating " + self.image_item.file_name, e)
+        
+    def validateAndCallRotate(self, angel):
+        if (angel.isnumeric()):
+            self.image_item.rotateImage(int(angel))
+            self.input_window.closeWindow()
+            self.window.updateDisplay()
+
+# ====================================================================================================
 
     def grayscaleImage(self):
         try:

@@ -11,14 +11,14 @@ from InputWindow import InputWindow
 def startMaze():
     root = MainWindow()
     root.updateDisplay()
-    # InputWindow(title="test").packTest()
+    # InputWindow(title="test").packTest() ???
     # fixing the blur UI on Windows
     try:
         from ctypes import windll
         windll.shcore.SetProcessDpiAwareness(1)
     finally:
         root.mainloop()
-
+        
 # when mazePDF ends
 def endMaze():
     # save stats ???
