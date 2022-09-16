@@ -13,8 +13,7 @@
 
 ***
 
-needed python libraries: [**tkinter**](https://docs.python.org/3/library/tkinter.html), [**PyPDF2**](https://pypi.org/project/PyPDF2/), [**PIL**](https://pypi.org/project/Pillow/)
-get the needed libraries installed, download the repository files and run [**mazePDF.py**](./mazePDF.py) to start
+#### to start get the needed python libraries([**tkinter**](https://docs.python.org/3/library/tkinter.html), [**PyPDF2**](https://pypi.org/project/PyPDF2/), [**PIL**](https://pypi.org/project/Pillow/)) installed, download the repository files and run [**mazePDF.py**](./mazePDF.py)
 
 ***
 ![image](./assets/screenshots/maze_pdf_1.png)
