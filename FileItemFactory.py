@@ -11,8 +11,8 @@ class FileItemFactory:
     # file types supported by mazePDF
     SUPPORTED_FILE_TYPES = (
         ("pdf files", ("*.pdf", "*.PDF")),
-        ("png files", ("*.png", "*.PNG")),
         ("jpeg files", ("*.jpg", "*.jpeg", "*.JPG", "*.JPEG")),
+        ("png files", ("*.png", "*.PNG")),
         ("bmp files", ("*.bmp", "*.BMP")),
         ("tiff files", ("*.tiff", "*.TIFF")),
         ("gif files", ("*.gif", "*.GIF")),

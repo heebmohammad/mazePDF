@@ -2,7 +2,7 @@ import os
 import pathlib
 import tkinter as tk
 from tkinter.messagebox import showerror
-from PyPDF2 import PdfFileMerger
+from PyPDF2 import PdfReader, PdfWriter,PdfFileMerger
 from AppPreferences import AppPreferences
 
 # App Preferences
@@ -91,11 +91,14 @@ class FileItem:
         self.file_path = file_paht
         self.file_name = FileItem.get_file_name(file_paht)
         self.file_type = FileItem.get_file_type(file_paht)
-        self.size = FileItem.get_file_size(file_paht)
-
+        self.updateSize()
+        
         #add to file_items_list
         FileItem.file_items_list.append(self)
     
+    def updateSize(self):
+        self.size = FileItem.get_file_size(self.file_path)
+
     #change FileItem representation to file path
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.file_path}')"
@@ -137,9 +140,46 @@ class FileItem:
         controllers.packDefaultControllers()
         return controllers
 # ****************************************************************************************************
+    
+    # mazePDF metadata for new created pdf files
+    @classmethod
+    def newCreatedPDF(cls, new_pdf_path):
+        reader = PdfReader(new_pdf_path)
+        writer = PdfWriter()
+        writer.append_pages_from_reader(reader)
+        writer.add_metadata(reader.metadata)
+        # mazePDF metadata
+        FileItem.mazePDFMetadata(writer)
+
+        with open(new_pdf_path, "wb") as f:
+            writer.write(f)
+
+    @classmethod
+    def mazePDFMetadata(cls, obj):
+        # mazePDF metadata
+        obj.add_metadata({"/Producer" : "mazePDF", "/Creator" : "mazePDF"})
 
     @classmethod
     def mergeFilesToPdf(cls, merged_path="merged_file.pdf"):
+        # Create an instance of PdfFileMerger() class
+        merger = PdfFileMerger()
+
+        # Iterate over the pdf paths list
+        for file_item in FileItem.file_items_list:
+            #Append file_item as pdf file
+            merger.append(file_item.convertToPDF())
+        
+        # mazePDF metadata
+        FileItem.mazePDFMetadata(merger)
+
+        # Write out the merged PDF file
+        output = open(merged_path, "wb")
+        merger.write(output)
+        merger.close()
+        output.close()
+
+    @classmethod
+    def mergePDFSFilesToPdf(cls, merged_path="merged_file.pdf"):
         pdf_paths_list = FileItem.getPdfFilesPaths()
         # if all the files of type pdf
         if (len(pdf_paths_list) == len(FileItem.file_items_list)):

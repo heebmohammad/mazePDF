@@ -6,6 +6,7 @@
 # - Item Controllers: X
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+import tempfile
 import tkinter as tk
 from tkinter import filedialog as fd
 from PIL import Image
@@ -23,14 +24,20 @@ class ImageItem(FileItem):
         
         #Load the image
         self.img = Image.open(self.file_path)
-        self.updateSize()
+        self.updateDimensions()
     
-    def updateSize(self):
+    def updateDimensions(self):
         self.image_width = self.img.width
         self.image_height = self.img.height
 
     def openFile(self):
         self.img.show()
+    
+    def convertToPDF(self):
+        temp_file = tempfile.NamedTemporaryFile(prefix="mazePDFtemp")
+        self.saveImageAsPDF(temp_file)
+        temp_file.seek(0)
+        return temp_file
     
     def getPreview(self, container)-> tk.Frame:
         return ImageItemFrame(self, container)
@@ -42,6 +49,7 @@ class ImageItem(FileItem):
         if (self.img.mode == "RGBA"):
             self.img = self.img.convert('RGB')
         self.img.save(save_path, "PDF")
+        FileItem.newCreatedPDF(save_path)
     
     def saveImageAs(self, save_path):
         try:
@@ -56,7 +64,7 @@ class ImageItem(FileItem):
 
     def rotateImage(self, angel):
         self.img = self.img.rotate(angel, expand=True)
-        self.updateSize()
+        self.updateDimensions()
 
     def flipImageVertically(self):
         self.img = self.img.transpose(method=Image.FLIP_TOP_BOTTOM)
