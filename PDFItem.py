@@ -9,6 +9,7 @@
 import tkinter as tk
 from tkinter.messagebox import askyesno, showinfo
 from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.generic import DictionaryObject
 from AppPreferences import AppPreferences
 from FileItem import FileItem, FileItemControllers, FileItemFrame
 
@@ -53,7 +54,6 @@ class PDFItem(FileItem):
     
     def getFormmatedMetadata(self):
         SPACE = '\n\n'
-        print(type(self.meta_data))
         if (self.is_encrypted and self.user_password == None):
             return "cannot view metadata"
         elif self.is_encrypted and self.user_password != None:
@@ -76,6 +76,19 @@ class PDFItem(FileItem):
             return metadata_str
 
 # ====================================================================================================
+    def removeMetadata(self):
+        reader = PdfReader(self.file_path)
+        writer = PdfWriter()
+        writer.append_pages_from_reader(reader)
+
+        # change info object in PyPDF2.PdfWriter.__init__ to an empty dictionary object
+        writer._info = writer._add_object(DictionaryObject())
+
+        with open(self.file_path, "wb") as f:
+            writer.write(f)
+        
+        self.updateSize()
+        self.updatePDFProperties()
 
     def launchPrintWindow(self):
         reader = PdfReader(self.file_path)
@@ -207,6 +220,11 @@ class PDFItemControllers(FileItemControllers):
             self.rows[1], "Show Metadata", self.showPDFMetadata)
         self.show_metadata_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
+        # clear metadata button
+        self.clear_metadata_button = app_style.getStyledController(
+            self.rows[1], "Clear Metadata", self.clearPDFMetadata)
+        self.clear_metadata_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+
         # ready to print button
         self.ready_to_print_button = app_style.getStyledController(
             self.rows[1], "Ready to Print", self.readyToPrintPDF)
@@ -220,6 +238,16 @@ class PDFItemControllers(FileItemControllers):
                 message=self.pdf_item.getFormmatedMetadata())
         except Exception as e:
             FileItem.showSomethingWentWrong("error viewing " + self.pdf_item.getFileName() + " metadata", e)
+    
+    def clearPDFMetadata(self):
+        try:
+            answer = askyesno(title="Remove Metadata from PDF", 
+                message="Are you sure that you want to remove metadata from \"" + self.pdf_item.getFileName() + "\"?")            
+            if answer:
+                self.pdf_item.removeMetadata()
+                self.window.updateDisplay()
+        except Exception as e:
+            FileItem.showSomethingWentWrong("error removing metadata from " + self.pdf_item.getFileName(), e)
 
     def readyToPrintPDF(self):
         try:
