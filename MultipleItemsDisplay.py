@@ -157,6 +157,7 @@ class MultipleFilesControllers(tk.Frame):
         self.merge_files_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
 
         # remove non-pdfs ???
+        
         # full display (column_num = 3) ???
 
         # merge pages button

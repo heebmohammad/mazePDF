@@ -5,13 +5,11 @@
 # import
 import tkinter as tk
 from AppDisplays import MainWindow
-from InputWindow import InputWindow
 
 # when mazePDF starts
 def startMaze():
     root = MainWindow()
     root.updateDisplay()
-    # InputWindow(title="test").packTest() ???
     # fixing the blur UI on Windows
     try:
         from ctypes import windll
@@ -26,5 +24,6 @@ def endMaze():
 
 # ====================================================================================================
 
-startMaze()
-endMaze()
+if __name__=="__main__":
+    startMaze()
+    endMaze()

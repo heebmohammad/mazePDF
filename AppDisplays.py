@@ -4,6 +4,14 @@ from AppPreferences import MAIN_ICON_PATH, AppPreferences
 from FileItem import FileItem
 from BrowseFiles import BrowseFilesButton
 from MultipleItemsDisplay import MultipleItemsDisplay
+from Footer import Footer
+
+MAIN_MESSAGE = (
+    "mazePDF\n\n"
+    + "Graphical user interface to work with pdf files\n"
+    + "by: Mohammad Heeb\n\n"
+    + "■ visit: https://github.com/heebmohammad/mazePDF"
+    )
 
 # App Preferences
 app_style = AppPreferences()
@@ -81,6 +89,7 @@ class MainWindow(tk.Tk):
         self.packTopMainLogo(self.display_container, True)
         BrowseFilesButton(self.display_container, self).packFull()
         # footer ???
+        Footer(self.display_container, self).pack(fill=tk.X)
 
     # Multiple Files Display    
     def packMultipleItemsDisplay(self):
@@ -88,7 +97,7 @@ class MainWindow(tk.Tk):
         multiple_files_display = MultipleItemsDisplay(self.display_container, self, 1)
         multiple_files_display.pack(fill=tk.BOTH, expand=True)
         BrowseFilesButton(self.display_container, self).packWide()
-        # footer ???
+        Footer(self.display_container, self).pack(fill=tk.X)
 
     # Single Item Display
     def packSingleItemDisplay(self):
@@ -96,7 +105,7 @@ class MainWindow(tk.Tk):
         file_item = FileItem.getFirstFileItem()
         self.packItemPreviewAndControllers(file_item)
         BrowseFilesButton(self.display_container, self).packWide()
-        # footer ???
+        Footer(self.display_container, self).pack(fill=tk.X)
 
     # preview an item and its controllers
     def packItemPreviewAndControllers(self, file_item):
@@ -132,4 +141,4 @@ class MainWindow(tk.Tk):
         self.main_logo_button.pack(fill=tk.X, side=tk.TOP)
 
 def showProgramInfo():
-    showinfo(title="about mazePDF", message="M.HEEB!")
+    showinfo(title="about mazePDF", message=MAIN_MESSAGE)

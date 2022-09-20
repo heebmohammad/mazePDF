@@ -3,16 +3,15 @@
 # - add support to: (".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".gif") file types, types supported by PIL
 # - python libraries dependency: PIL
 # - Item Preview: V
-# - Item Controllers: X
+# - Item Controllers: V
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 import tempfile
 import tkinter as tk
 from tkinter import filedialog as fd
-from PIL import Image
+from PIL import Image, ImageFilter
 from AppPreferences import AppPreferences
 from FileItem import FileItem, FileItemControllers, FileItemFrame
-from InputWindow import InputWindow
 
 # App Preferences
 app_style = AppPreferences()
@@ -61,8 +60,11 @@ class ImageItem(FileItem):
 
     def grayscaleImage(self):
         self.img = self.img.convert('L')
+    
+    def blurImage(self):
+        self.img = self.img.filter(ImageFilter.BLUR)
 
-    def rotateImage(self, angel):
+    def rotateImage(self, angel=90):
         self.img = self.img.rotate(angel, expand=True)
         self.updateDimensions()
 
@@ -135,12 +137,13 @@ class ImageItemControllers(FileItemControllers):
 
         # blur button
         self.blur_button = app_style.getStyledController(
-            self.columns[0], "Blur")
+            self.columns[0], "Blur", self.blurImage)
         self.blur_button.pack(fill=tk.X, side=side, expand=expand)
 
         # resize button
         self.resize_button = app_style.getStyledController(
             self.columns[1], "Resize")
+        self.resize_button.config(state=tk.DISABLED)
         self.resize_button.pack(fill=tk.X, side=side, expand=expand)
 
         # rotate button
@@ -188,10 +191,12 @@ class ImageItemControllers(FileItemControllers):
                 self.image_item.saveImageAs(save_file_path)
                 app_style.setLastDirectory(save_file_path)
         except Exception as e:
-            FileItem.showSomethingWentWrong("error saving " + self.image_item.file_name, e)
+            FileItem.showSomethingWentWrong("error saving " + self.image_item.getFileName(), e)
 
 # ====================================================================================================
-
+    
+    # input window controllers
+    '''
     def rotateImage(self):
         try:
             self.input_window = InputWindow(title="rotate image", 
@@ -206,25 +211,37 @@ class ImageItemControllers(FileItemControllers):
             self.image_item.rotateImage(int(angel))
             self.input_window.closeWindow()
             self.window.updateDisplay()
-
+    '''
 # ====================================================================================================
+    
+    def rotateImage(self):
+        try:
+            self.image_item.rotateImage()
+        except Exception as e:
+            FileItem.showSomethingWentWrong("error rotating " + self.image_item.getFileName(), e)
+    
+    def blurImage(self):
+        try:
+            self.image_item.blurImage()
+        except Exception as e:
+            FileItem.showSomethingWentWrong("error bluring " + self.image_item.getFileName(), e)
 
     def grayscaleImage(self):
         try:
             self.image_item.grayscaleImage()
         except Exception as e:
-            FileItem.showSomethingWentWrong("error grayscaling " + self.image_item.file_name, e)
+            FileItem.showSomethingWentWrong("error grayscaling " + self.image_item.getFileName(), e)
 
     def flipImageVertically(self):
         try:
             self.image_item.flipImageVertically()
         except Exception as e:
-            FileItem.showSomethingWentWrong("failed to flip " + self.image_item.file_name, e)
+            FileItem.showSomethingWentWrong("failed to flip " + self.image_item.getFileName(), e)
 
     def flipImageHorizontally(self):
         try:
             self.image_item.flipImageHorizontally()
         except Exception as e:
-            FileItem.showSomethingWentWrong("failed to flip " + self.image_item.file_name, e)
+            FileItem.showSomethingWentWrong("failed to flip " + self.image_item.getFileName(), e)
 
 # ****************************************************************************************************

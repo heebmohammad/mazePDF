@@ -27,7 +27,7 @@ class BrowseFilesButton(tk.Button):
         self.config(text="Add Files")
         app_style.setControllerStyle(self)
         #app_style.setButtonColor(self, True) ???
-        self.pack(fill=tk.X)
+        self.pack(fill=tk.X, pady=1)
 
     # select files command
     def selectFiles(self):

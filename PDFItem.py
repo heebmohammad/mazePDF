@@ -6,6 +6,7 @@
 # - Item Controllers: X
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+from asyncore import write
 import tkinter as tk
 from tkinter.messagebox import askyesno, showinfo
 from PyPDF2 import PdfReader, PdfWriter
@@ -94,7 +95,7 @@ class PDFItem(FileItem):
         reader = PdfReader(self.file_path)
         writer = PdfWriter()
         writer.append_pages_from_reader(reader)
-        writer.add_js("this.print(" + "{" + "bUI:true,bSilent:false,bShrinkToFit:true});")
+        writer.add_js("this.print({bUI:true,bSilent:false,bShrinkToFit:true});")
 
         writer.add_metadata(reader.metadata)
         # mazePDF metadata
@@ -196,39 +197,40 @@ class PDFItemControllers(FileItemControllers):
 
     def packPDFControllers(self):
         
-        side = tk.LEFT
+        side = tk.TOP
         expand = True
 
-        self.rows = self.packRows(2)
+        self.columns = self.packColumns(3)
+
         # quick compress button
         self.quick_compress_button = app_style.getStyledController(
-            self.rows[0], "Quick Compress", self.quickCompressPDF)
-        self.quick_compress_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            self.columns[0], "Quick Compress", self.quickCompressPDF)
+        self.quick_compress_button.pack(fill=tk.X, side=side, expand=expand)
 
         # hard compress button
         self.hard_compress_button = app_style.getStyledController(
-            self.rows[0], "Hard Compress", self.hardCompressPDF)
-        self.hard_compress_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
-
-        # remove images button
-        self.remove_images_button = app_style.getStyledController(
-            self.rows[0], "Remove Images (beta)", self.removeImageFromPDF)
-        self.remove_images_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            self.columns[0], "Hard Compress", self.hardCompressPDF)
+        self.hard_compress_button.pack(fill=tk.X, side=side, expand=expand)
 
         # show metadata button
         self.show_metadata_button = app_style.getStyledController(
-            self.rows[1], "Show Metadata", self.showPDFMetadata)
-        self.show_metadata_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            self.columns[1], "Show Metadata", self.showPDFMetadata)
+        self.show_metadata_button.pack(fill=tk.X, side=side, expand=expand)
 
         # clear metadata button
         self.clear_metadata_button = app_style.getStyledController(
-            self.rows[1], "Clear Metadata", self.clearPDFMetadata)
-        self.clear_metadata_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            self.columns[1], "Clear Metadata", self.clearPDFMetadata)
+        self.clear_metadata_button.pack(fill=tk.X, side=side, expand=expand)
+
+        # remove images button
+        self.remove_images_button = app_style.getStyledController(
+            self.columns[2], "Remove Images", self.removeImageFromPDF)
+        self.remove_images_button.pack(fill=tk.X, side=side, expand=expand)
 
         # ready to print button
         self.ready_to_print_button = app_style.getStyledController(
-            self.rows[1], "Ready to Print", self.readyToPrintPDF)
-        self.ready_to_print_button.pack(fill=tk.X, side=tk.LEFT, expand=True)
+            self.columns[2], "Ready to Print", self.readyToPrintPDF)
+        self.ready_to_print_button.pack(fill=tk.X, side=side, expand=expand)
     #....................................................................................................#
 
 # ====================================================================================================

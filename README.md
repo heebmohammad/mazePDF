@@ -3,6 +3,9 @@
 ### by: ***Mohammad Heeb***
 <br />
 
+![image](./assets/screenshots/maze_pdf_1.png)
+<br />
+
 #### **to start** you need to
 1. [**download python**](https://www.python.org/) (version 3.6 or later).
 2. get the needed python libraries ([**tkinter**](https://docs.python.org/3/library/tkinter.html), [**PyPDF2**](https://pypi.org/project/PyPDF2/), [**PIL**](https://pypi.org/project/Pillow/)) installed.
@@ -15,18 +18,17 @@
 
 #### _using **mazePDF** you can_:
 + merege the supported file types into single pdf file.
+<br /><br />
+![image](./assets/screenshots/maze_pdf_2.png)
 + add, remove and arrange files visually.
+<br /><br />
+![image](./assets/screenshots/maze_pdf_3.png)
 + reduce pdf file size: quick compress, hard compress and remove images.
 + pdf metadata view and clear
+<br /><br />
+![image](./assets/screenshots/maze_pdf_5.png)
 + work with images: resize, rotate, flip, grayscale, blur and convert to pdf or save as another image type.
-
-
-![image](./assets/screenshots/maze_pdf_1.png)
-<br />
-![image](./assets/screenshots/maze_pdf_2.png)
-<br />
-![image](./assets/screenshots/maze_pdf_3.png)
-<br />
+<br /><br />
 ![image](./assets/screenshots/maze_pdf_4.png)
 ***
 

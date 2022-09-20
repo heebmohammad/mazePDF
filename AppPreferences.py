@@ -1,5 +1,6 @@
 from cgitb import text
 from distutils.command.config import config
+from operator import index
 import os
 import tkinter as tk
 from tkinter import TclError
@@ -11,7 +12,7 @@ DISPLAY_MODES = ("DARK", "LIGHT")
 THEME_COLORS = {
     "DEFAULT_GREEN" : "#4CAF50",
     "DEFAULT_RED" : "#F40F02",
-    "DEFAULT_BLACK" : "#000000",
+    "DEFAULT_BLACK" : "#181818",
 }
 
 # mazePDF assets
@@ -111,7 +112,7 @@ class AppPreferences():
 
     def getBackgroundColor(self):
         if self.display_mode == "DARK":
-            return "#000000"
+            return THEME_COLORS["DEFAULT_BLACK"]
         elif self.display_mode == "LIGHT":
             return "#FFFFFF"
 
@@ -120,6 +121,10 @@ class AppPreferences():
             return "#FFFFFF"
         elif self.display_mode == "LIGHT":
             return "#000000"
+    
+    def changeDisplayMode(self):
+        i = (DISPLAY_MODES.index(self.display_mode) + 1) % 2
+        self.display_mode = DISPLAY_MODES[i]
 
     # set frame background color
     def setFrameColor(self, frame):
@@ -127,7 +132,7 @@ class AppPreferences():
 
     # set button color
     def setButtonColor(self, button, follow_theme=False):
-        background_color = "#000000"
+        background_color = THEME_COLORS["DEFAULT_BLACK"]
         foreground_color = "#FFFFFF"
         if follow_theme:
             background_color = self.theme_color
@@ -196,6 +201,17 @@ class AppPreferences():
             label_font = ("Century Gothic", 12, "bold")
         return tk.Label(container,
             text=label_text,
+            background=background_color,
+            foreground=foreground_color,
+            font=label_font)
+
+    # set footer label
+    def setFooterLabel(self, label):
+        foreground_color = self.getForegroundColor()
+        background_color = self.getBackgroundColor()
+        label_font = ("Century Gothic", 10)
+
+        label.config(
             background=background_color,
             foreground=foreground_color,
             font=label_font)

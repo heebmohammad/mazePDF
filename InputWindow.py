@@ -1,6 +1,8 @@
 import tkinter as tk
 from AppPreferences import AppPreferences
 
+# IN PROGRESS, NOT-YET FINALIZED.
+
 # App Preferences
 app_style = AppPreferences()
 
@@ -62,7 +64,6 @@ class InputWindow(tk.Toplevel):
             row += 1
         
         # first fet focus ???
-
     
     def getAnswers(self):
         fields_answers = {}
