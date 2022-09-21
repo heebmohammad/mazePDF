@@ -33,9 +33,9 @@ class ImageItem(FileItem):
         self.img.show()
     
     def convertToPDF(self):
-        temp_file = tempfile.NamedTemporaryFile(prefix="mazePDFtemp")
+        temp_file = tempfile.NamedTemporaryFile(prefix="mazePDFtemp").name
         self.saveImageAsPDF(temp_file)
-        temp_file.seek(0)
+        # temp_file.seek(0)
         return temp_file
     
     def getPreview(self, container)-> tk.Frame:

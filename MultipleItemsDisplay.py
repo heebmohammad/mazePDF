@@ -193,6 +193,7 @@ class MultipleFilesControllers(tk.Frame):
                 FileItem.mergeFilesToPdf(save_file_path)
                 app_style.setLastDirectory(save_file_path)
         except Exception as e:
+            print(str(e))
             FileItem.showSomethingWentWrong("merge files failed!", e)
 
 # ====================================================================================================

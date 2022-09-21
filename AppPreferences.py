@@ -52,8 +52,7 @@ class AppPreferences():
         self = cls.__instance
         
         # last opened directory
-        #self.last_directory = '/'
-        self.last_directory = 'C:/Users/moham/Downloads/example'
+        self.last_directory = '/'
 
         # default display mode
         self.display_mode = DISPLAY_MODES[0]
